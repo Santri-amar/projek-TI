@@ -26,6 +26,14 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (!error?.response) {
+      const networkMessage =
+        error?.message === "Network Error"
+          ? "Gagal terhubung ke server. Periksa koneksi internet Anda atau coba lagi nanti."
+          : error?.message || "Tidak dapat terhubung ke server.";
+      return Promise.reject(new Error(networkMessage));
+    }
+
     const message =
       error?.response?.data?.msg ||
       error?.response?.data?.message ||
@@ -37,3 +45,4 @@ apiClient.interceptors.response.use(
 );
 
 export const API_BASE_URL = baseURL;
+

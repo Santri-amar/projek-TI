@@ -65,7 +65,21 @@ export async function loginByRole(role, payload) {
 }
 
 export async function loginAdmin(payload) {
-  return loginByRole("admin", payload);
+  const endpoint = loginEndpointByRole["admin"];
+  const rawIdentifier = payload.identifier.trim();
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawIdentifier);
+
+  if (!isEmail) {
+    throw new Error("Admin hanya dapat login menggunakan email.");
+  }
+
+  const requestPayload = {
+    email: rawIdentifier,
+    password: payload.password,
+  };
+
+  const response = await apiClient.post(endpoint, requestPayload);
+  return normalizeLoginResponse(response.data);
 }
 
 export async function loginGuru(payload) {

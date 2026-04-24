@@ -28,7 +28,6 @@ const menuItems = {
     { id: "attendance", label: "Absensi", icon: ClipboardCheck },
     { id: "grades", label: "Nilai", icon: BarChart3 },
     { id: "announcements", label: "Pengumuman", icon: Megaphone },
-    { id: "reports", label: "Laporan", icon: FileText },
     { id: "profile", label: "Profil", icon: User },
     { id: "settings", label: "Pengaturan", icon: Settings },
   ],

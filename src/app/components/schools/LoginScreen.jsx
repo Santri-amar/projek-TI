@@ -18,6 +18,24 @@ export function LoginScreen() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMsg("");
+
+    const trimmedIdentifier = identifier.trim();
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedIdentifier);
+
+    if (role === "admin" && !isEmail) {
+      setErrorMsg("Admin hanya dapat login menggunakan email.");
+      return;
+    }
+
+    if (
+      role !== "admin" &&
+      isEmail &&
+      !trimmedIdentifier.endsWith("@school.id")
+    ) {
+      setErrorMsg("Email harus menggunakan domain @school.id");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -75,7 +93,7 @@ export function LoginScreen() {
           <form className="auth-form" onSubmit={handleLogin}>
             <div className="auth-group">
               <label className="auth-label" htmlFor="login-identifier">
-                Email / Username
+                {role === "admin" ? "Email" : "Email / Username"}
               </label>
               <input
                 id="login-identifier"
@@ -83,6 +101,11 @@ export function LoginScreen() {
                 type="text"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
+                placeholder={
+                  role === "admin"
+                    ? "Masukkan email admin"
+                    : "Masukkan email atau username"
+                }
                 required
               />
             </div>
@@ -134,6 +157,7 @@ export function LoginScreen() {
               {isLoading ? "Memuat..." : "Login"}
             </button>
           </form>
+
           <div className="auth-right-corner" />
         </div>
       </div>
