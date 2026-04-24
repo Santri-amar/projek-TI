@@ -16,16 +16,14 @@ export function RegisterScreen() {
     confirmPassword: "",
   });
 
-  const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (event) => {
     setFormData((prev) => ({
       ...prev,
       [event.target.name]: event.target.value,
     }));
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
@@ -207,7 +205,10 @@ export function RegisterScreen() {
               </div>
 
               <div className="auth-group">
-                <label className="auth-label" htmlFor="register-confirm-password">
+                <label
+                  className="auth-label"
+                  htmlFor="register-confirm-password"
+                >
                   Confirm Password
                 </label>
                 <input

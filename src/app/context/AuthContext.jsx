@@ -1,22 +1,11 @@
 import { createContext, useContext, useState } from "react";
-import type { ReactNode } from "react";
-import type { UserData } from "../services/authService";
-
-// 1. Bentuk data yang ada di "papan pengumuman"
-interface AuthContextType {
-  user: UserData | null;
-  token: string | null;
-  login: (token: string, user: UserData) => void;
-  logout: () => void;
-  isLoggedIn: boolean;
-}
 
 // 2. Buat papan pengumumannya (masih kosong)
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext(null);
 
 // 3. Buat "penjaga papan" yang tugasnya update isi papan
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserData | null>(() => {
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(() => {
     const saved = localStorage.getItem("user");
     try {
       return saved ? JSON.parse(saved) : null;
@@ -26,11 +15,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
 
-  const [token, setToken] = useState<string | null>(() => {
+  const [token, setToken] = useState(() => {
     return localStorage.getItem("token");
   });
 
-  function login(token: string, user: UserData) {
+  function login(token, user) {
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
     setToken(token);
@@ -44,8 +33,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }
 
+  function updateUser(payload) {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const nextUser = { ...prev, ...payload };
+      localStorage.setItem("user", JSON.stringify(nextUser));
+      return nextUser;
+    });
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoggedIn: !!token }}>
+    <AuthContext.Provider
+      value={{ user, token, login, updateUser, logout, isLoggedIn: !!token }}
+    >
       {children}
     </AuthContext.Provider>
   );

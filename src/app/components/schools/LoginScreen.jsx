@@ -8,14 +8,14 @@ import { useAuth } from "../../context/AuthContext";
 export function LoginScreen() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("");
+  const [role, setRole] = useState("siswa");
   const [rememberMe, setRememberMe] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMsg("");
     setIsLoading(true);
@@ -25,16 +25,16 @@ export function LoginScreen() {
 
       // Pilih fungsi login berdasarkan role
       if (role === "admin") {
-        result = await loginAdmin({ email, password });
+        result = await loginAdmin({ identifier, password });
       } else if (role === "guru") {
-        result = await loginGuru({ email, password });
+        result = await loginGuru({ identifier, password });
       } else {
-        result = await loginSiswa({ email, password });
+        result = await loginSiswa({ identifier, password });
       }
 
       login(result.data.token, result.data.user);
       navigate("/dashboard");
-    } catch (error: unknown) {
+    } catch (error) {
       if (error instanceof Error) {
         setErrorMsg(error.message);
       } else {
@@ -74,15 +74,15 @@ export function LoginScreen() {
           <h1 className="auth-title">Account Login</h1>
           <form className="auth-form" onSubmit={handleLogin}>
             <div className="auth-group">
-              <label className="auth-label" htmlFor="login-email">
-                Email
+              <label className="auth-label" htmlFor="login-identifier">
+                Email / Username
               </label>
               <input
-                id="login-email"
+                id="login-identifier"
                 className="auth-input"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 required
               />
             </div>
@@ -95,9 +95,7 @@ export function LoginScreen() {
                 id="login-role"
                 className="auth-input"
                 value={role}
-                onChange={(e) =>
-                  setRole(e.target.value as "admin" | "guru" | "siswa")
-                }
+                onChange={(e) => setRole(e.target.value)}
               >
                 <option value="admin">Admin</option>
                 <option value="guru">Guru</option>

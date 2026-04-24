@@ -1,16 +1,21 @@
 import { motion } from "motion/react";
 import { useState } from "react";
 import {
-  Home, Users, GraduationCap, BookOpen, Calendar,
-  ClipboardCheck, BarChart3, Megaphone, FileText,
-  Settings, User, LogOut, Menu, X
+  Home,
+  Users,
+  GraduationCap,
+  BookOpen,
+  Calendar,
+  ClipboardCheck,
+  BarChart3,
+  Megaphone,
+  FileText,
+  Settings,
+  User,
+  LogOut,
+  Menu,
+  X,
 } from "lucide-react";
-
-interface SidebarProps {
-  role: "admin" | "guru" | "siswa";
-  activeMenu: string;
-  onMenuClick: (menu: string) => void;
-}
 
 const menuItems = {
   admin: [
@@ -24,6 +29,7 @@ const menuItems = {
     { id: "grades", label: "Nilai", icon: BarChart3 },
     { id: "announcements", label: "Pengumuman", icon: Megaphone },
     { id: "reports", label: "Laporan", icon: FileText },
+    { id: "profile", label: "Profil", icon: User },
     { id: "settings", label: "Pengaturan", icon: Settings },
   ],
   guru: [
@@ -45,25 +51,31 @@ const menuItems = {
   ],
 };
 
-export function Sidebar({ role, activeMenu, onMenuClick }: SidebarProps) {
+export function Sidebar({ role, activeMenu, onMenuClick, onLogout }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const menus = menuItems[role];
 
   const SidebarContent = () => (
     <>
       {/* Logo & School Info */}
-      <div className="p-6 border-b border-[#E5E5E5]">
+      <div className="p-6 border-b border-[#E3EAF5]">
         <div className="flex items-center gap-3 mb-2">
-          {/* Logo */}
-          <img src="/logo-owl.png" alt="Schools Logo" className="w-10 h-10 object-contain" />
-
+          <img
+            src="/logo-owl.png"
+            alt="Schools Logo"
+            className="w-10 h-10 object-contain"
+          />
           <div>
-            <h1 className="font-black text-lg text-black">SCHOOLS</h1>
-            <p className="text-xs text-gray-600">SMA Negeri 1</p>
+            <h1 className="font-black text-lg text-[#111827]">SCHOOLS</h1>
+            <p className="text-xs text-[#6B7280]">SMA Negeri 1</p>
           </div>
         </div>
-        <span className="inline-block px-2 py-1 text-xs font-semibold bg-black text-white rounded">
-          {role === "admin" ? "Admin Panel" : role === "guru" ? "Teacher Panel" : "Student Panel"}
+        <span className="inline-block px-2 py-1 text-xs font-semibold bg-gradient-to-r from-[#4DA3FF] to-[#8A52E8] text-white rounded">
+          {role === "admin"
+            ? "Admin Panel"
+            : role === "guru"
+              ? "Teacher Panel"
+              : "Student Panel"}
         </span>
       </div>
 
@@ -84,8 +96,8 @@ export function Sidebar({ role, activeMenu, onMenuClick }: SidebarProps) {
               whileTap={{ scale: 0.98 }}
               className={`w-full flex items-center gap-3 px-4 py-3 mb-1 rounded-xl transition ${
                 isActive
-                  ? "bg-black text-white"
-                  : "text-gray-700 hover:bg-[#F5F5F5]"
+                  ? "bg-gradient-to-r from-[#4DA3FF] to-[#8A52E8] text-white shadow-md"
+                  : "text-[#374151] hover:bg-[#EEF4FF]"
               }`}
             >
               <Icon className="w-5 h-5" />
@@ -96,8 +108,11 @@ export function Sidebar({ role, activeMenu, onMenuClick }: SidebarProps) {
       </nav>
 
       {/* Logout */}
-      <div className="p-3 border-t border-[#E5E5E5]">
-        <button className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl transition">
+      <div className="p-3 border-t border-[#E3EAF5]">
+        <button
+          onClick={onLogout}
+          className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl transition"
+        >
           <LogOut className="w-5 h-5" />
           <span className="font-medium text-sm">Logout</span>
         </button>
@@ -110,26 +125,24 @@ export function Sidebar({ role, activeMenu, onMenuClick }: SidebarProps) {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg border border-[#E3EAF5]"
       >
         {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
       </button>
 
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex w-[260px] h-screen bg-white border-r border-[#E5E5E5] fixed left-0 top-0 flex-col">
+      <div className="hidden lg:flex w-[260px] h-screen bg-white border-r border-[#E3EAF5] fixed left-0 top-0 flex-col">
         <SidebarContent />
       </div>
 
       {/* Mobile Sidebar */}
       {mobileOpen && (
         <>
-          {/* Overlay */}
           <div
             className="lg:hidden fixed inset-0 bg-black/50 z-40"
             onClick={() => setMobileOpen(false)}
           />
 
-          {/* Sidebar */}
           <motion.div
             initial={{ x: -300 }}
             animate={{ x: 0 }}
