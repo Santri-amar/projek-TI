@@ -3,6 +3,8 @@ import { useNavigate } from "react-router";
 import { Sidebar } from "./Sidebar";
 import { TopNavbar } from "./TopNavbar";
 import { AdminDashboard } from "./AdminDashboard";
+import { TeacherDashboard } from "./TeacherDashboard";
+import { StudentDashboard } from "./StudentDashboard";
 import { DashboardContent } from "./DashboardContent";
 import { useAuth } from "../../../context/AuthContext";
 
@@ -55,6 +57,23 @@ export function Dashboard() {
     return null;
   }
 
+  // Render dashboard berdasarkan role
+  const renderDashboard = () => {
+    if (userRole === "admin") {
+      return (
+        <AdminDashboard
+          userName={userName}
+          searchQuery={searchQuery}
+          onQuickAction={handleMenuClick}
+        />
+      );
+    }
+    if (userRole === "guru") {
+      return <TeacherDashboard userName={userName} />;
+    }
+    return <StudentDashboard userName={userName} />;
+  };
+
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
       <Sidebar
@@ -88,12 +107,8 @@ export function Dashboard() {
           />
 
           <div className="relative z-10">
-            {userRole === "admin" && activeMenu === "dashboard" ? (
-              <AdminDashboard
-                userName={userName}
-                searchQuery={searchQuery}
-                onQuickAction={handleMenuClick}
-              />
+            {activeMenu === "dashboard" ? (
+              renderDashboard()
             ) : (
               <DashboardContent
                 role={userRole}

@@ -63,6 +63,43 @@ export function LoginScreen() {
     }
   };
 
+  // Demo mode: bypass API
+  const handleDemoLogin = (demoRole) => {
+    const demoUsers = {
+      admin: {
+        token: "demo-admin-token",
+        user: {
+          id: 1,
+          name: "Admin Sekolah",
+          email: "admin@school.id",
+          role: "admin",
+        },
+      },
+      guru: {
+        token: "demo-guru-token",
+        user: {
+          id: 2,
+          name: "Budi Santoso",
+          email: "budi@school.id",
+          role: "guru",
+        },
+      },
+      siswa: {
+        token: "demo-siswa-token",
+        user: {
+          id: 3,
+          name: "Ahmad Fauzi",
+          email: "ahmad@school.id",
+          role: "siswa",
+        },
+      },
+    };
+
+    const demo = demoUsers[demoRole];
+    login(demo.token, demo.user);
+    navigate("/dashboard");
+  };
+
   return (
     <section className="auth-page auth-login">
       <div className="auth-bg-ring auth-bg-ring--outline auth-bg-ring--top-small" />
@@ -157,6 +194,36 @@ export function LoginScreen() {
               {isLoading ? "Memuat..." : "Login"}
             </button>
           </form>
+
+          {/* Demo Mode Buttons */}
+          <div className="mt-6 pt-6 border-t border-[#E3EAF5]">
+            <p className="text-xs text-[#6B7280] text-center mb-3">
+              Mode Demo (Tanpa API)
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => handleDemoLogin("admin")}
+                className="flex-1 px-3 py-2 bg-gradient-to-r from-[#4DA3FF] to-[#8A52E8] text-white text-xs font-semibold rounded-lg hover:opacity-90 transition"
+              >
+                Demo Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDemoLogin("guru")}
+                className="flex-1 px-3 py-2 bg-gradient-to-r from-green-500 to-teal-500 text-white text-xs font-semibold rounded-lg hover:opacity-90 transition"
+              >
+                Demo Guru
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDemoLogin("siswa")}
+                className="flex-1 px-3 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-semibold rounded-lg hover:opacity-90 transition"
+              >
+                Demo Siswa
+              </button>
+            </div>
+          </div>
 
           <div className="auth-right-corner" />
         </div>
