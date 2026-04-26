@@ -1,128 +1,77 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import { Save, User, Mail, Shield } from "lucide-react";
+import { 
+  Key, 
+  Save, 
+  X, 
+  Circle
+} from "lucide-react";
+import "./StudentsPage.css"; 
 
-export function ProfilePage({
-  userName,
-  userEmail,
-  userRole,
-  onProfileUpdate,
-}) {
-  const [profileName, setProfileName] = useState(userName);
-  const [profileEmail, setProfileEmail] = useState(userEmail);
-  const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError("");
-    setMessage("");
-
-    if (!profileName.trim() || !profileEmail.trim()) {
-      setError("Nama dan email wajib diisi.");
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      onProfileUpdate?.(profileName.trim(), profileEmail.trim());
-      setMessage("Profil berhasil diperbarui.");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal menyimpan profil.");
-    } finally {
-      setIsSaving(false);
-    }
-  }
+export function ProfilePage() {
+  const [isChanging, setIsChanging] = useState(false);
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white border border-[#E3EAF5] rounded-2xl p-6 shadow-sm">
-        <h2 className="text-xl font-bold text-[#111827] mb-1">
-          Profil Pengguna
-        </h2>
-        <p className="text-sm text-[#6B7280]">Kelola informasi profil Anda</p>
-      </div>
-
-      {message && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm"
-        >
-          {message}
-        </motion.div>
-      )}
-
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm"
-        >
-          {error}
-        </motion.div>
-      )}
-
-      <div className="bg-white border border-[#E3EAF5] rounded-2xl p-6 shadow-sm">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 bg-gradient-to-r from-[#4DA3FF] to-[#8A52E8] rounded-full flex items-center justify-center text-white text-2xl font-bold">
-            {profileName.charAt(0).toUpperCase()}
+    <div className="p-4 md:p-6 lg:p-10 space-y-8 animate-in fade-in duration-500 max-w-4xl mx-auto">
+      <h1 className="text-4xl font-extrabold tracking-tight text-[#030213]">Password</h1>
+      
+      <div className="table-column overflow-hidden shadow-xl shadow-black/[0.02]">
+        <div className="view-header flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Circle className="w-3 h-3 fill-current" />
+            <span>Ganti Password</span>
           </div>
-          <div>
-            <h3 className="text-lg font-bold text-[#111827]">{profileName}</h3>
-            <p className="text-sm text-[#6B7280] capitalize">{userRole}</p>
+          <div className="flex gap-2">
+            <button 
+              className="px-6 py-1.5 bg-white border border-slate-300 text-slate-700 rounded-md font-bold text-xs hover:bg-slate-50 transition-all"
+              onClick={() => setIsChanging(false)}
+            >
+              Cancel
+            </button>
+            <button 
+              className="px-6 py-1.5 bg-[#030213] text-white rounded-md font-bold text-xs hover:opacity-90 transition-all"
+              onClick={() => setIsChanging(true)}
+            >
+              Simpan
+            </button>
           </div>
         </div>
+        
+        <div className="p-8 space-y-8 bg-white">
+          <div className="max-w-md space-y-6">
+            <div className="space-y-2">
+              <label className="form-label">Password lama</label>
+              <input 
+                type="password" 
+                className="form-input w-full" 
+                placeholder="••••••••"
+              />
+            </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
-          <div>
-            <label className="block text-sm font-medium text-[#374151] mb-1 flex items-center gap-2">
-              <User className="w-4 h-4" /> Nama Lengkap
-            </label>
-            <input
-              className="w-full px-3 py-2 rounded-lg border border-[#DCE7F8] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4DA3FF]/30"
-              value={profileName}
-              onChange={(e) => setProfileName(e.target.value)}
-              placeholder="Nama lengkap"
-              required
-            />
+            <div className="space-y-2">
+              <label className="form-label">Password baru</label>
+              <input 
+                type="password" 
+                className="form-input w-full" 
+                placeholder="••••••••"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="form-label">Konfirmasi Password</label>
+              <input 
+                type="password" 
+                className="form-input w-full" 
+                placeholder="••••••••"
+              />
+            </div>
           </div>
+        </div>
+      </div>
 
-          <div>
-            <label className="block text-sm font-medium text-[#374151] mb-1 flex items-center gap-2">
-              <Mail className="w-4 h-4" /> Email
-            </label>
-            <input
-              type="email"
-              className="w-full px-3 py-2 rounded-lg border border-[#DCE7F8] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4DA3FF]/30"
-              value={profileEmail}
-              onChange={(e) => setProfileEmail(e.target.value)}
-              placeholder="email@school.id"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[#374151] mb-1 flex items-center gap-2">
-              <Shield className="w-4 h-4" /> Role
-            </label>
-            <input
-              className="w-full px-3 py-2 rounded-lg border border-[#DCE7F8] bg-gray-50 text-sm text-gray-500"
-              value={userRole}
-              disabled
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#4DA3FF] to-[#8A52E8] text-white rounded-xl text-sm font-semibold disabled:opacity-60 hover:opacity-95 transition"
-          >
-            <Save className="w-4 h-4" />
-            {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
-          </button>
-        </form>
+      {/* Aesthetic background elements like in Figma */}
+      <div className="fixed bottom-0 right-0 p-10 opacity-5 pointer-events-none -z-10">
+         <img src="/logo-owl.png" alt="" className="w-96 grayscale" />
       </div>
     </div>
   );

@@ -1,322 +1,167 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { motion } from "motion/react";
-import { Loader2, Save, X } from "lucide-react";
-import { PageHeader } from "../../../ui/PageHeader";
-import { DataTable } from "../../../ui/DataTable";
-import { FormModal } from "../../../ui/FormModal";
-import { ConfirmDialog } from "../../../ui/ConfirmDialog";
-import { StatusBadge } from "../../../ui/StatusBadge";
-import {
-  getAbsensiList,
-  createAbsensi,
-  updateAbsensi,
-  deleteAbsensi,
-} from "../../../../services/absensiService";
-import { dummyAttendance } from "../../../../data/dummyData";
+import { 
+  Camera, 
+  User, 
+  Calendar, 
+  Clock, 
+  CheckCircle2, 
+  XCircle,
+  Plus,
+  ChevronDown,
+  Edit,
+  Loader2
+} from "lucide-react";
+import "./StudentsPage.css"; 
 
-const initialForm = {
-  siswaId: "",
-  jadwalId: "",
-  guruId: "",
-  mapelId: "",
-  status: "hadir",
-  tanggal: "",
-  jamMasuk: "",
-  jamKeluar: "",
-  keterangan: "",
-  metode: "",
-  divalidasi: false,
-};
+export function AttendancePage() {
+  const [activeTab, setActiveTab] = useState("input"); // 'input' or 'history'
 
-export function AttendancePage({ searchQuery = "" }) {
-  const [data, setData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState(initialForm);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const [localSearch, setLocalSearch] = useState("");
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  async function loadData() {
-    setIsLoading(true);
-    setError("");
-    try {
-      const result = await getAbsensiList();
-      setData(result);
-    } catch (err) {
-      console.warn("API failed, using dummy data:", err.message);
-      setData(dummyAttendance);
-      setError("Gagal memuat dari server. Menampilkan data dummy.");
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  const combinedSearch = (searchQuery || localSearch).trim().toLowerCase();
-
-  const filteredData = useMemo(() => {
-    if (!combinedSearch) return data;
-    return data.filter((item) =>
-      `${item.status} ${item.tanggal} ${item.siswaId} ${item.guruId} ${item.mapelId} ${item.keterangan ?? ""}`.toLowerCase().includes(combinedSearch)
-    );
-  }, [data, combinedSearch]);
-
-  const columns = [
-    { key: "tanggal", header: "Tanggal", accessor: (item) => item.tanggal || "-" },
-    {
-      key: "status",
-      header: "Status",
-      render: (item) => (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          item.status === "hadir" ? "bg-green-100 text-green-700" :
-          item.status === "izin" ? "bg-yellow-100 text-yellow-700" :
-          item.status === "sakit" ? "bg-blue-100 text-blue-700" :
-          "bg-red-100 text-red-700"
-        }`}>
-          {item.status?.toUpperCase() || "-"}
-        </span>
-      ),
-    },
-    { key: "siswaId", header: "Siswa ID", accessor: (item) => item.siswaId || "-" },
-    { key: "guruId", header: "Guru ID", accessor: (item) => item.guruId || "-" },
-    { key: "mapelId", header: "Mapel ID", accessor: (item) => item.mapelId || "-" },
-    { key: "jamMasuk", header: "Jam Masuk", accessor: (item) => item.jamMasuk || "-" },
-    { key: "jamKeluar", header: "Jam Keluar", accessor: (item) => item.jamKeluar || "-" },
-    {
-      key: "divalidasi",
-      header: "Validasi",
-      render: (item) => <StatusBadge status={item.divalidasi ? "aktif" : "nonaktif"} activeLabel="Tervalidasi" inactiveLabel="Belum" />,
-    },
-  ];
-
-  function openAdd() {
-    setEditingId(null);
-    setForm(initialForm);
-    setMessage("");
-    setError("");
-    setIsModalOpen(true);
-  }
-
-  function openEdit(item) {
-    setEditingId(item.id);
-    setForm({
-      siswaId: String(item.siswaId ?? ""),
-      jadwalId: item.jadwalId || "",
-      guruId: String(item.guruId ?? ""),
-      mapelId: String(item.mapelId ?? ""),
-      status: item.status || "hadir",
-      tanggal: item.tanggal ? item.tanggal.slice(0, 10) : "",
-      jamMasuk: item.jamMasuk || "",
-      jamKeluar: item.jamKeluar || "",
-      keterangan: item.keterangan || "",
-      metode: item.metode || "",
-      divalidasi: item.divalidasi ?? false,
-    });
-    setMessage("");
-    setError("");
-    setIsModalOpen(true);
-  }
-
-  function handleChange(field, value) {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError("");
-    setMessage("");
-
-    if (!form.siswaId || !form.jadwalId || !form.guruId || !form.mapelId || !form.status || !form.tanggal) {
-      setError("Siswa, jadwal, guru, mapel, status, dan tanggal wajib diisi.");
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      const payload = {
-        siswaId: Number(form.siswaId),
-        jadwalId: form.jadwalId,
-        guruId: Number(form.guruId),
-        mapelId: Number(form.mapelId),
-        status: form.status,
-        tanggal: form.tanggal,
-        jamMasuk: form.jamMasuk || undefined,
-        jamKeluar: form.jamKeluar || undefined,
-        keterangan: form.keterangan || undefined,
-        metode: form.metode || undefined,
-        divalidasi: form.divalidasi,
-      };
-
-      if (editingId !== null) {
-        await updateAbsensi(editingId, payload);
-        setMessage("Data absensi berhasil diperbarui.");
-      } else {
-        await createAbsensi(payload);
-        setMessage("Data absensi berhasil ditambahkan.");
-      }
-
-      await loadData();
-      setIsModalOpen(false);
-      setForm(initialForm);
-      setEditingId(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal menyimpan data.");
-    } finally {
-      setIsSaving(false);
-    }
-  }
-
-  async function handleConfirmDelete() {
-    if (!deleteTarget) return;
-    setIsDeleting(true);
-    try {
-      await deleteAbsensi(deleteTarget.id);
-      setMessage("Data absensi berhasil dihapus.");
-      await loadData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal menghapus data.");
-    } finally {
-      setIsDeleting(false);
-      setDeleteTarget(null);
-    }
-  }
+  const historyData = Array(9).fill({
+    name: "Inayatul Maula",
+    nim: "2021400243",
+    subject: "Data Mining",
+    date: "Rabu, 14 Maret 2023 10:32 WIB",
+    status: "HADIR"
+  }).map((item, idx) => idx % 2 === 1 ? {...item, status: 'IZIN', subject: 'Sistem Mikroprosesor', date: 'Rabu, 15 Maret 2023 09:20 WIB'} : item);
 
   return (
-    <div className="space-y-4">
-      <PageHeader
-        title="Absensi"
-        subtitle="Kelola data absensi siswa dan guru"
-        searchQuery={localSearch}
-        onSearchChange={setLocalSearch}
-        onAddClick={openAdd}
-        addButtonLabel="Tambah Absensi"
-      />
+    <div className="p-4 md:p-6 lg:p-10 space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <h1 className="text-4xl font-extrabold tracking-tight text-[#030213]">
+          {activeTab === 'input' ? 'ABSENSI' : 'RIWAYAT ABSENSI'}
+        </h1>
+        
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => setActiveTab('input')}
+            className={`px-6 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === 'input' ? 'bg-[#030213] text-white' : 'bg-white text-slate-500 border border-slate-200'}`}
+          >
+            Absensi Baru
+          </button>
+          <button 
+            onClick={() => setActiveTab('history')}
+            className={`px-6 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === 'history' ? 'bg-[#030213] text-white' : 'bg-white text-slate-500 border border-slate-200'}`}
+          >
+            Riwayat
+          </button>
+        </div>
+      </div>
 
-      {message && (
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm">
-          {message}
-        </motion.div>
-      )}
+      <div className="form-section-card shadow-xl shadow-black/[0.02]">
+        {activeTab === 'input' ? (
+          <div className="view-content !p-0">
+             <div className="max-w-3xl mx-auto p-10 space-y-8">
+                {/* Selfie Box */}
+                <div className="space-y-2">
+                   <label className="text-[10px] font-bold text-slate-700">Ambil Foto Selfie</label>
+                   <div className="file-upload-zone h-[180px] flex items-center justify-center border-dashed">
+                      <Camera className="w-8 h-8 text-slate-300" />
+                   </div>
+                </div>
 
-      {error && !isModalOpen && (
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
-          {error}
-        </motion.div>
-      )}
+                {/* Form Fields */}
+                <div className="space-y-6">
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-700 uppercase">Nama Anda</label>
+                      <input type="text" className="form-input w-full" placeholder="Masukkan nama" />
+                   </div>
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-700 uppercase">NIM</label>
+                      <input type="text" className="form-input w-full" placeholder="Masukkan NIM" />
+                   </div>
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-700 uppercase">Tanggal & Waktu</label>
+                      <input type="text" className="form-input w-full" placeholder="Otomatis terisi" disabled />
+                   </div>
 
-      <DataTable
-        columns={columns}
-        data={filteredData}
-        isLoading={isLoading}
-        emptyMessage="Belum ada data absensi untuk ditampilkan."
-        onEdit={openEdit}
-        onDelete={(item) => setDeleteTarget(item)}
-      />
+                   {/* Radio Status */}
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-700 uppercase">Keterangan</label>
+                      <div className="flex items-center gap-12 pt-2">
+                         <label className="flex items-center gap-2 cursor-pointer group">
+                            <div className="w-5 h-5 rounded-full border-2 border-slate-300 group-hover:border-[#030213] flex items-center justify-center">
+                               <div className="w-2.5 h-2.5 bg-[#030213] rounded-full opacity-0 group-has-[:checked]:opacity-100 transition-all"></div>
+                            </div>
+                            <input type="radio" name="status" className="hidden" defaultChecked />
+                            <span className="text-sm font-bold text-slate-600">Hadir</span>
+                         </label>
+                         <label className="flex items-center gap-2 cursor-pointer group">
+                            <div className="w-5 h-5 rounded-full border-2 border-slate-300 group-hover:border-[#030213] flex items-center justify-center">
+                               <div className="w-2.5 h-2.5 bg-[#030213] rounded-full opacity-0 group-has-[:checked]:opacity-100 transition-all"></div>
+                            </div>
+                            <input type="radio" name="status" className="hidden" />
+                            <span className="text-sm font-bold text-slate-600">Izin</span>
+                         </label>
+                         <label className="flex items-center gap-2 cursor-pointer group">
+                            <div className="w-5 h-5 rounded-full border-2 border-slate-300 group-hover:border-[#030213] flex items-center justify-center">
+                               <div className="w-2.5 h-2.5 bg-[#030213] rounded-full opacity-0 group-has-[:checked]:opacity-100 transition-all"></div>
+                            </div>
+                            <input type="radio" name="status" className="hidden" />
+                            <span className="text-sm font-bold text-slate-600">Telat</span>
+                         </label>
+                      </div>
+                   </div>
 
-      <FormModal
-        isOpen={isModalOpen}
-        title={editingId !== null ? "Edit Data Absensi" : "Tambah Absensi Baru"}
-        onClose={() => { setIsModalOpen(false); setForm(initialForm); setEditingId(null); setError(""); }}
-      >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-700 uppercase">Keterangan</label>
+                      <textarea className="form-input form-textarea w-full" placeholder="Tambahkan catatan jika perlu"></textarea>
+                   </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-[#374151] mb-1">Siswa ID *</label>
-              <input type="number" min={1} className="w-full px-3 py-2 rounded-lg border border-[#DCE7F8] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4DA3FF]/30" value={form.siswaId} onChange={(e) => handleChange("siswaId", e.target.value)} placeholder="ID Siswa" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#374151] mb-1">Jadwal ID *</label>
-              <input className="w-full px-3 py-2 rounded-lg border border-[#DCE7F8] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4DA3FF]/30" value={form.jadwalId} onChange={(e) => handleChange("jadwalId", e.target.value)} placeholder="ID Jadwal" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#374151] mb-1">Guru ID *</label>
-              <input type="number" min={1} className="w-full px-3 py-2 rounded-lg border border-[#DCE7F8] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4DA3FF]/30" value={form.guruId} onChange={(e) => handleChange("guruId", e.target.value)} placeholder="ID Guru" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#374151] mb-1">Mapel ID *</label>
-              <input type="number" min={1} className="w-full px-3 py-2 rounded-lg border border-[#DCE7F8] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4DA3FF]/30" value={form.mapelId} onChange={(e) => handleChange("mapelId", e.target.value)} placeholder="ID Mapel" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#374151] mb-1">Status *</label>
-              <select className="w-full px-3 py-2 rounded-lg border border-[#DCE7F8] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4DA3FF]/30" value={form.status} onChange={(e) => handleChange("status", e.target.value)} required>
-                <option value="hadir">Hadir</option>
-                <option value="izin">Izin</option>
-                <option value="sakit">Sakit</option>
-                <option value="alfa">Alfa</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#374151] mb-1">Tanggal *</label>
-              <input type="date" className="w-full px-3 py-2 rounded-lg border border-[#DCE7F8] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4DA3FF]/30" value={form.tanggal} onChange={(e) => handleChange("tanggal", e.target.value)} required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#374151] mb-1">Jam Masuk</label>
-              <input type="time" className="w-full px-3 py-2 rounded-lg border border-[#DCE7F8] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4DA3FF]/30" value={form.jamMasuk} onChange={(e) => handleChange("jamMasuk", e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#374151] mb-1">Jam Keluar</label>
-              <input type="time" className="w-full px-3 py-2 rounded-lg border border-[#DCE7F8] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4DA3FF]/30" value={form.jamKeluar} onChange={(e) => handleChange("jamKeluar", e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#374151] mb-1">Metode</label>
-              <select className="w-full px-3 py-2 rounded-lg border border-[#DCE7F8] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4DA3FF]/30" value={form.metode} onChange={(e) => handleChange("metode", e.target.value)}>
-                <option value="">Pilih Metode</option>
-                <option value="manual">Manual</option>
-                <option value="qr">QR Code</option>
-                <option value="fingerprint">Fingerprint</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#374151] mb-1">Validasi</label>
-              <select className="w-full px-3 py-2 rounded-lg border border-[#DCE7F8] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4DA3FF]/30" value={form.divalidasi ? "true" : "false"} onChange={(e) => handleChange("divalidasi", e.target.value === "true")}>
-                <option value="false">Belum Validasi</option>
-                <option value="true">Sudah Validasi</option>
-              </select>
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-[#374151] mb-1">Keterangan</label>
-              <textarea className="w-full px-3 py-2 rounded-lg border border-[#DCE7F8] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4DA3FF]/30 min-h-20" value={form.keterangan} onChange={(e) => handleChange("keterangan", e.target.value)} placeholder="Keterangan tambahan..." />
-            </div>
+                   <button className="w-full py-4 bg-[#030213] text-white rounded-lg font-bold text-lg shadow-xl shadow-black/10 active:scale-95 transition-all">
+                      Simpan
+                   </button>
+                </div>
+             </div>
           </div>
+        ) : (
+          <div className="view-content !p-10 space-y-10 bg-[#F9FAFB]">
+             {/* Toolbar */}
+             <div className="flex flex-col sm:flex-row items-center justify-end gap-4">
+                <button className="flex items-center justify-between gap-4 px-6 py-2 bg-white border border-slate-100 rounded-xl w-48 font-bold text-sm shadow-sm">
+                  <span>Terbaru</span>
+                  <ChevronDown className="w-4 h-4 text-slate-300" />
+                </button>
+                <button className="flex items-center gap-2 px-6 py-2 bg-white border border-slate-100 rounded-xl font-bold text-sm shadow-sm">
+                  <Plus className="w-4 h-4 text-[#030213]" />
+                  <span>Tambah Guru</span>
+                </button>
+             </div>
 
-          <div className="flex gap-3 pt-4 border-t border-[#F3F4F6]">
-            <button type="submit" disabled={isSaving} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#4DA3FF] to-[#8A52E8] text-white rounded-xl text-sm font-semibold disabled:opacity-60 hover:opacity-95 transition">
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {isSaving ? "Menyimpan..." : editingId !== null ? "Simpan Perubahan" : "Tambah Absensi"}
-            </button>
-            <button type="button" onClick={() => { setIsModalOpen(false); setForm(initialForm); setEditingId(null); setError(""); }} className="flex items-center gap-2 px-5 py-2.5 border border-[#E3EAF5] text-[#374151] rounded-xl text-sm font-semibold hover:bg-gray-50 transition">
-              <X className="w-4 h-4" /> Batal
-            </button>
+             {/* Grid History */}
+             <div className="attendance-grid">
+                {historyData.map((item, idx) => (
+                  <div key={idx} className="attendance-card bg-white">
+                    <span className={`attendance-status-badge ${item.status === 'HADIR' ? 'status-hadir' : 'status-izin'}`}>
+                      {item.status}
+                    </span>
+                    
+                    <div className="attendance-avatar mt-4">
+                      <img 
+                        src={`https://i.pravatar.cc/150?u=student${idx}`} 
+                        alt="" 
+                        className="w-full h-full object-cover grayscale"
+                      />
+                    </div>
+
+                    <div className="flex flex-col justify-center gap-1">
+                      <p className="text-[10px] font-bold text-slate-400">{item.date}</p>
+                      <h4 className="text-sm font-bold text-[#030213] leading-tight">
+                        Nama : {item.name}<br/>
+                        NIM : {item.nim}<br/>
+                        Makul : {item.subject}
+                      </h4>
+                    </div>
+
+                    <button className="attendance-edit-btn">
+                      <Edit className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+             </div>
           </div>
-        </form>
-      </FormModal>
-
-      <ConfirmDialog
-        isOpen={!!deleteTarget}
-        title="Hapus Data Absensi"
-        message={`Apakah Anda yakin ingin menghapus data absensi tanggal ${deleteTarget?.tanggal}?`}
-        onConfirm={handleConfirmDelete}
-        onCancel={() => setDeleteTarget(null)}
-        confirmText={isDeleting ? "Menghapus..." : "Hapus"}
-      />
+        )}
+      </div>
     </div>
   );
 }
-

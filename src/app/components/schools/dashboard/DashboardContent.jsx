@@ -25,6 +25,10 @@ import { MyClassesPage } from "./pages/MyClassesPage";
 import { StudentSchedulePage } from "./pages/StudentSchedulePage";
 import { StudentGradesPage } from "./pages/StudentGradesPage";
 import { StudentAttendancePage } from "./pages/StudentAttendancePage";
+import { AddStudentPage } from "./pages/AddStudentPage";
+import { AddTeacherPage } from "./pages/AddTeacherPage";
+import { UserManagementPage } from "./pages/UserManagementPage";
+import { AddExamGradePage } from "./pages/AddExamGradePage";
 
 const roleCards = {
   admin: [
@@ -184,38 +188,38 @@ export function DashboardContent({
   const pageComponents = useMemo(() => {
     // Role-specific page mappings
     const adminPages = {
-      students: <StudentsPage searchQuery={searchQuery} />,
-      teachers: <TeachersPage searchQuery={searchQuery} />,
-      classes: <ClassesPage searchQuery={searchQuery} />,
-      subjects: <SubjectsPage searchQuery={searchQuery} />,
-      schedule: <SchedulePage searchQuery={searchQuery} />,
-      attendance: <AttendancePage searchQuery={searchQuery} />,
-      grades: <GradesPage searchQuery={searchQuery} />,
+      "academic-management": <ClassesPage searchQuery={searchQuery} />,
+      "user-management": <UserManagementPage searchQuery={searchQuery} />,
+      "academic-data": <AttendancePage searchQuery={searchQuery} />,
       announcements: <AnnouncementsPage searchQuery={searchQuery} />,
-      reports: (
-        <div className="bg-white border border-[#E3EAF5] rounded-2xl p-8 text-center">
-          <FileText className="w-12 h-12 text-[#DCE7F8] mx-auto mb-4" />
-          <h3 className="text-lg font-bold text-[#111827] mb-2">Laporan</h3>
-          <p className="text-sm text-[#6B7280]">
-            Fitur laporan akan segera hadir.
-          </p>
-        </div>
-      ),
+      schedule: <SchedulePage searchQuery={searchQuery} />,
+      "add-student": <AddStudentPage onBack={() => onMenuClick("user-management")} />,
+      "add-teacher": <AddTeacherPage onBack={() => onMenuClick("teachers")} />,
+      "add-exam-grade": <AddExamGradePage onBack={() => onMenuClick("academic-data")} />,
+      students: <StudentsPage searchQuery={searchQuery} onAddClick={() => onMenuClick("add-student")} />,
+      teachers: <TeachersPage searchQuery={searchQuery} onAddClick={() => onMenuClick("add-teacher")} />,
+      profile: <ProfilePage />,
     };
 
     const guruPages = {
-      "my-classes": <MyClassesPage />,
-      schedule: <SchedulePage searchQuery={searchQuery} />,
+      "students-data": <StudentsPage searchQuery={searchQuery} onAddClick={() => onMenuClick("add-student")} />,
       attendance: <AttendancePage searchQuery={searchQuery} />,
-      grades: <GradesPage searchQuery={searchQuery} />,
+      schedule: <SchedulePage searchQuery={searchQuery} />,
+      grades: <GradesPage searchQuery={searchQuery} onAddClick={() => onMenuClick("add-exam-grade")} />,
       announcements: <AnnouncementsPage searchQuery={searchQuery} />,
+      "add-student": <AddStudentPage onBack={() => onMenuClick("students-data")} />,
+      "add-exam-grade": <AddExamGradePage onBack={() => onMenuClick("grades")} />,
+      profile: <ProfilePage />,
     };
 
     const siswaPages = {
-      schedule: <StudentSchedulePage />,
-      grades: <StudentGradesPage />,
-      attendance: <StudentAttendancePage />,
+      dashboard: <DashboardCards role="siswa" />,
+      profile: <ProfilePage />,
+      schedule: <SchedulePage searchQuery={searchQuery} />,
+      grades: <GradesPage searchQuery={searchQuery} onAddClick={() => onMenuClick("add-exam-grade")} />,
+      attendance: <AttendancePage searchQuery={searchQuery} />,
       announcements: <AnnouncementsPage searchQuery={searchQuery} />,
+      "add-exam-grade": <AddExamGradePage onBack={() => onMenuClick("grades")} />,
     };
 
     const commonPages = {
@@ -249,9 +253,9 @@ export function DashboardContent({
   const currentPage = pageComponents[activeMenu];
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-6">
+    <div className="space-y-6">
       {isDashboard && (
-        <>
+        <div className="p-4 md:p-6 lg:p-8 space-y-6">
           <WelcomeHeader userName={userName} role={role} />
           <DashboardCards role={role} />
 
@@ -296,7 +300,7 @@ export function DashboardContent({
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {!isDashboard && currentPage}

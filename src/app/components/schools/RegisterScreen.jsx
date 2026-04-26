@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { Eye, EyeOff } from "lucide-react";
 import { Logo } from "./Logo";
 import "./AuthScreens.css";
 
@@ -15,6 +16,8 @@ export function RegisterScreen() {
     password: "",
     confirmPassword: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (event) => {
     setFormData((prev) => ({
@@ -25,13 +28,10 @@ export function RegisterScreen() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-
     if (formData.password !== formData.confirmPassword) {
       alert("Password dan confirm password harus sama.");
       return;
     }
-
-    // TODO: Integrasi API register
     navigate("/login");
   };
 
@@ -109,7 +109,6 @@ export function RegisterScreen() {
                   required
                 />
               </div>
-
               <div className="auth-group">
                 <label className="auth-label" htmlFor="register-phone">
                   Nomor Handphone
@@ -193,33 +192,54 @@ export function RegisterScreen() {
                 <label className="auth-label" htmlFor="register-password">
                   Password
                 </label>
-                <input
-                  id="register-password"
-                  className="auth-input"
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
+                <div className="auth-password-wrap">
+                  <input
+                    id="register-password"
+                    className="auth-input auth-input--password"
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="auth-password-toggle"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    tabIndex={-1}
+                    aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div className="auth-group">
-                <label
-                  className="auth-label"
-                  htmlFor="register-confirm-password"
-                >
+                <label className="auth-label" htmlFor="register-confirm-password">
                   Confirm Password
                 </label>
-                <input
-                  id="register-confirm-password"
-                  className="auth-input"
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                />
+                <div className="auth-password-wrap">
+                  <input
+                    id="register-confirm-password"
+                    className="auth-input auth-input--password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="Konfirmasi password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="auth-password-toggle"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    tabIndex={-1}
+                    aria-label={showConfirmPassword ? "Sembunyikan password" : "Lihat password"}
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -229,8 +249,8 @@ export function RegisterScreen() {
           </form>
 
           <div className="auth-right-corner" />
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
   );
 }

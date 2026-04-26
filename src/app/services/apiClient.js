@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const baseURL =
-  import.meta.env.VITE_API_BASE_URL?.trim() || "https://school.petik.or.id";
+// Use relative path for proxy in development, absolute for production
+const baseURL = "/api/";
 
 export const apiClient = axios.create({
   baseURL,

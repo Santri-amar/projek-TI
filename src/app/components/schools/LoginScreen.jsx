@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { Eye, EyeOff } from "lucide-react";
 import { Logo } from "./Logo";
 import "./AuthScreens.css";
 import { loginAdmin, loginGuru, loginSiswa } from "../../services/authService";
@@ -14,6 +15,7 @@ export function LoginScreen() {
   const [rememberMe, setRememberMe] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -21,18 +23,18 @@ export function LoginScreen() {
 
     const trimmedIdentifier = identifier.trim();
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedIdentifier);
-
     if (role === "admin" && !isEmail) {
       setErrorMsg("Admin hanya dapat login menggunakan email.");
       return;
     }
 
-    if (
-      role !== "admin" &&
-      isEmail &&
-      !trimmedIdentifier.endsWith("@school.id")
-    ) {
-      setErrorMsg("Email harus menggunakan domain @school.id");
+    if (role === "guru" && isEmail) {
+      setErrorMsg("Guru hanya dapat login menggunakan username.");
+      return;
+    }
+
+    if (role === "siswa" && isEmail) {
+      setErrorMsg("Siswa hanya dapat login menggunakan username.");
       return;
     }
 
@@ -41,7 +43,6 @@ export function LoginScreen() {
     try {
       let result;
 
-      // Pilih fungsi login berdasarkan role
       if (role === "admin") {
         result = await loginAdmin({ identifier, password });
       } else if (role === "guru") {
@@ -63,43 +64,6 @@ export function LoginScreen() {
     }
   };
 
-  // Demo mode: bypass API
-  const handleDemoLogin = (demoRole) => {
-    const demoUsers = {
-      admin: {
-        token: "demo-admin-token",
-        user: {
-          id: 1,
-          name: "Admin Sekolah",
-          email: "admin@school.id",
-          role: "admin",
-        },
-      },
-      guru: {
-        token: "demo-guru-token",
-        user: {
-          id: 2,
-          name: "Budi Santoso",
-          email: "budi@school.id",
-          role: "guru",
-        },
-      },
-      siswa: {
-        token: "demo-siswa-token",
-        user: {
-          id: 3,
-          name: "Ahmad Fauzi",
-          email: "ahmad@school.id",
-          role: "siswa",
-        },
-      },
-    };
-
-    const demo = demoUsers[demoRole];
-    login(demo.token, demo.user);
-    navigate("/dashboard");
-  };
-
   return (
     <section className="auth-page auth-login">
       <div className="auth-bg-ring auth-bg-ring--outline auth-bg-ring--top-small" />
@@ -114,7 +78,7 @@ export function LoginScreen() {
             <Logo />
           </div>
           <div className="auth-left-text">
-            <p>Dont have an account?</p>
+            <p>Don't have an account?</p>
             <button
               type="button"
               className="auth-left-link"
@@ -130,7 +94,7 @@ export function LoginScreen() {
           <form className="auth-form" onSubmit={handleLogin}>
             <div className="auth-group">
               <label className="auth-label" htmlFor="login-identifier">
-                {role === "admin" ? "Email" : "Email / Username"}
+                {role === "admin" ? "Email" : "Username"}
               </label>
               <input
                 id="login-identifier"
@@ -138,11 +102,7 @@ export function LoginScreen() {
                 type="text"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder={
-                  role === "admin"
-                    ? "Masukkan email admin"
-                    : "Masukkan email atau username"
-                }
+                placeholder={role === "admin" ? "Masukkan email admin" : "Masukkan username"}
                 required
               />
             </div>
@@ -167,14 +127,26 @@ export function LoginScreen() {
               <label className="auth-label" htmlFor="login-password">
                 Password
               </label>
-              <input
-                id="login-password"
-                className="auth-input"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="auth-password-wrap">
+                <input
+                  id="login-password"
+                  className="auth-input auth-input--password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Masukkan password"
+                  required
+                />
+                <button
+                  type="button"
+                  className="auth-password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             <label className="auth-check" htmlFor="remember-me">
@@ -190,42 +162,11 @@ export function LoginScreen() {
             {errorMsg && (
               <p className="text-red-400 text-sm mb-2">{errorMsg}</p>
             )}
+
             <button className="auth-submit" type="submit" disabled={isLoading}>
               {isLoading ? "Memuat..." : "Login"}
             </button>
           </form>
-
-          {/* Demo Mode Buttons */}
-          <div className="mt-6 pt-6 border-t border-[#E3EAF5]">
-            <p className="text-xs text-[#6B7280] text-center mb-3">
-              Mode Demo (Tanpa API)
-            </p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => handleDemoLogin("admin")}
-                className="flex-1 px-3 py-2 bg-gradient-to-r from-[#4DA3FF] to-[#8A52E8] text-white text-xs font-semibold rounded-lg hover:opacity-90 transition"
-              >
-                Demo Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoLogin("guru")}
-                className="flex-1 px-3 py-2 bg-gradient-to-r from-green-500 to-teal-500 text-white text-xs font-semibold rounded-lg hover:opacity-90 transition"
-              >
-                Demo Guru
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoLogin("siswa")}
-                className="flex-1 px-3 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-semibold rounded-lg hover:opacity-90 transition"
-              >
-                Demo Siswa
-              </button>
-            </div>
-          </div>
-
-          <div className="auth-right-corner" />
         </div>
       </div>
     </section>

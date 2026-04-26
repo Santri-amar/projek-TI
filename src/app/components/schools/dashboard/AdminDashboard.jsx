@@ -150,7 +150,7 @@ export function AdminDashboard({
         value: isLoading ? "..." : formatNumber(statData?.totalStudents ?? 0),
         growth: "+12%",
         growthPositive: true,
-        iconColor: "#3B82F6",
+        iconColor: "#6366f1",
       },
       {
         icon: GraduationCap,
@@ -158,7 +158,7 @@ export function AdminDashboard({
         value: isLoading ? "..." : formatNumber(statData?.totalTeachers ?? 0),
         growth: "+5%",
         growthPositive: true,
-        iconColor: "#10B981",
+        iconColor: "#10b981",
       },
       {
         icon: BookOpen,
@@ -166,7 +166,7 @@ export function AdminDashboard({
         value: isLoading ? "..." : formatNumber(statData?.totalClasses ?? 0),
         growth: "+8%",
         growthPositive: true,
-        iconColor: "#F59E0B",
+        iconColor: "#f59e0b",
       },
       {
         icon: TrendingUp,
@@ -176,7 +176,7 @@ export function AdminDashboard({
           : formatPercent(statData?.todayAttendancePercent ?? 0),
         growth: "-2%",
         growthPositive: false,
-        iconColor: "#8B5CF6",
+        iconColor: "#a855f7",
       },
     ];
   }, [isLoading, overview]);
@@ -228,10 +228,10 @@ export function AdminDashboard({
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8">
       {/* Welcome Header */}
-      <div className="relative bg-gradient-to-r from-[#EEF4FF] to-[#F8F5FF] border border-[#DCE7F8] rounded-[20px] p-6 md:p-8 overflow-hidden">
-        {/* Decorative circle */}
-        <div className="absolute -top-10 -right-10 w-40 h-40 border-[8px] border-dashed border-[#4DA3FF]/20 rounded-full"></div>
-        <div className="absolute -bottom-16 -left-10 w-48 h-48 bg-[#8A52E8]/10 rounded-full blur-3xl"></div>
+      <div className="relative bg-gradient-to-r from-[#EEF4FF] to-[#F8F5FF] border border-[#DCE7F8] rounded-[24px] p-6 md:p-10 overflow-hidden shadow-sm">
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-50/50 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
 
         <div className="relative z-10 flex flex-col lg:flex-row items-start justify-between gap-4">
           <div>
@@ -283,7 +283,7 @@ export function AdminDashboard({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               whileHover={{ scale: 1.02, y: -4 }}
-              className="bg-[#EEF4FF] border border-[#DCE7F8] rounded-[20px] p-6 shadow-sm hover:shadow-lg transition"
+              className="bg-[#EEF4FF] border border-[#DCE7F8] rounded-[24px] p-6 shadow-sm hover:shadow-lg transition group"
             >
               <div className="flex items-start justify-between mb-4">
                 <div

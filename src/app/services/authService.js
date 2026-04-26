@@ -1,10 +1,10 @@
 import { apiClient } from "./apiClient";
 
 const loginEndpointByRole = {
-  superadmin: "/login/superadmin",
-  admin: "/login/admin",
-  guru: "/login/guru",
-  siswa: "/login/siswa",
+  superadmin: "login/superadmin",
+  admin: "login/admin",
+  guru: "guru", // diubah agar sesuai backend
+  siswa: "login/siswa",
 };
 
 function normalizeLoginResponse(payload) {

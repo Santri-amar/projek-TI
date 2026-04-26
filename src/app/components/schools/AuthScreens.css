@@ -262,6 +262,46 @@
   cursor: not-allowed;
 }
 
+/* PASSWORD TOGGLE */
+.auth-password-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-input--password {
+  padding-right: 40px;
+}
+
+.auth-password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition:
+    color 0.2s,
+    background 0.2s;
+}
+
+.auth-password-toggle:hover {
+  color: #4da3ff;
+  background: rgba(77, 163, 255, 0.1);
+}
+
+.auth-password-toggle:focus-visible {
+  outline: 2px solid #4da3ff;
+  outline-offset: 2px;
+}
+
 .auth-login .auth-submit {
   margin-top: 8px;
 }

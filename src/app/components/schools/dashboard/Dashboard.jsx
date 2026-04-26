@@ -75,7 +75,7 @@ export function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6]">
+    <div className="min-h-screen bg-white">
       <Sidebar
         role={userRole}
         activeMenu={activeMenu}
@@ -83,19 +83,18 @@ export function Dashboard() {
         onLogout={handleLogout}
       />
 
-      <div className="ml-0 lg:ml-[260px] transition-all">
+      <div className="ml-0 lg:ml-[280px] transition-all">
         <TopNavbar
           pageTitle={pageTitle}
           userName={userName}
           userRole={userRole}
           searchQuery={searchQuery}
-          showSchoolSwitcher={userRole === "admin"}
           onSearchQueryChange={setSearchQuery}
           onMenuClick={handleMenuClick}
           onLogout={handleLogout}
         />
 
-        <div className="pt-[70px] min-h-screen bg-[#F3F4F6] relative">
+        <div className="min-h-screen bg-white relative">
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
