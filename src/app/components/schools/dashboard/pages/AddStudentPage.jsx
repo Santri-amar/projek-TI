@@ -1,105 +1,141 @@
-import { ArrowLeft, Save, Send } from "lucide-react";
+import { useState } from "react";
+import { motion } from "motion/react";
+import { ArrowLeft, Save, User, Mail, Phone, BookOpen, Calendar, MapPin, Loader2 } from "lucide-react";
+import { PageHeader } from "../../../ui/PageHeader";
+import { createSiswa } from "../../../../services/siswaService";
 
 export function AddStudentPage({ onBack }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    nisn: "",
+    email: "",
+    phone: "",
+    class: "X-A",
+    address: ""
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    await createSiswa(formData);
+    setTimeout(() => {
+      setIsSubmitting(false);
+      onBack();
+    }, 1000);
+  };
+
   return (
-    <div className="p-6 lg:p-10 space-y-8 animate-in fade-in duration-500 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={onBack}
-            className="p-3 hover:bg-slate-100 rounded-2xl transition-colors"
-          >
-            <ArrowLeft className="w-6 h-6 text-[#030213]" />
-          </button>
-          <h1 className="text-4xl font-extrabold tracking-tight text-[#030213]">Tambah Murid</h1>
-        </div>
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <button 
+          onClick={onBack}
+          className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5 text-slate-600" />
+        </button>
+        <PageHeader title="Tambah Siswa Baru" subtitle="Masukkan data lengkap siswa untuk pendaftaran" />
       </div>
 
-      <form className="space-y-8">
-        {/* Detail Murid */}
-        <div className="form-section-card">
-          <div className="form-section-header">Detail Murid</div>
-          <div className="form-section-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="space-y-2 lg:row-span-2">
-              <label className="form-label">Pas Foto *</label>
-              <div className="file-upload-zone h-[180px] flex items-center justify-center">
-                <p>Drag and drop or click here to select file</p>
+      <motion.form 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        onSubmit={handleSubmit}
+        className="bg-white border border-[#E3EAF5] rounded-3xl p-8 shadow-sm max-w-4xl"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Personal Info */}
+          <div className="space-y-6">
+            <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-widest border-b border-indigo-50 pb-2">Data Pribadi</h3>
+            
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase px-1">Nama Lengkap</label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input 
+                    type="text" required
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none transition-all"
+                    placeholder="Masukkan nama lengkap"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase px-1">NISN</label>
+                <div className="relative">
+                  <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input 
+                    type="text" required
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none transition-all"
+                    placeholder="Masukkan NISN"
+                    value={formData.nisn}
+                    onChange={(e) => setFormData({...formData, nisn: e.target.value})}
+                  />
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="form-label">Nama Depan *</label>
-              <input type="text" className="form-input w-full" placeholder="Samantha" required />
-            </div>
-            <div className="space-y-2">
-              <label className="form-label">Nama Belakang *</label>
-              <input type="text" className="form-input w-full" placeholder="William" required />
-            </div>
-            <div className="space-y-2">
-              <label className="form-label">Tempat & Tanggal Lahir *</label>
-              <div className="grid grid-cols-2 gap-4">
-                <input type="date" className="form-input w-full" />
-                <input type="text" className="form-input w-full" placeholder="Jakarta" />
+          </div>
+
+          {/* Contact & Class */}
+          <div className="space-y-6">
+            <h3 className="text-sm font-bold text-purple-600 uppercase tracking-widest border-b border-purple-50 pb-2">Kontak & Akademik</h3>
+            
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase px-1">Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input 
+                    type="email" required
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none transition-all"
+                    placeholder="nama@email.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <label className="form-label">Nama Orang Tua *</label>
-              <input type="text" className="form-input w-full" placeholder="Mona William" required />
-            </div>
-            <div className="space-y-2">
-              <label className="form-label">Email *</label>
-              <input type="email" className="form-input w-full" placeholder="william@mail.com" required />
-            </div>
-            <div className="space-y-2">
-              <label className="form-label">No. Telepon *</label>
-              <input type="tel" className="form-input w-full" placeholder="+1234567890" required />
-            </div>
-            <div className="md:col-span-2 lg:col-span-3 space-y-2">
-              <label className="form-label">Alamat Lengkap *</label>
-              <textarea className="form-input form-textarea w-full" placeholder="Jl. Raya No. 123..." required></textarea>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase px-1">Pilih Kelas</label>
+                <div className="relative">
+                  <School className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <select 
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none transition-all appearance-none"
+                    value={formData.class}
+                    onChange={(e) => setFormData({...formData, class: e.target.value})}
+                  >
+                    <option value="X-A">Kelas X-A</option>
+                    <option value="X-B">Kelas X-B</option>
+                    <option value="XI-A">Kelas XI-A</option>
+                    <option value="XII-A">Kelas XII-A</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Detail Orang Tua */}
-        <div className="form-section-card">
-          <div className="form-section-header">Detail Orang Tua</div>
-          <div className="form-section-content grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-2">
-              <label className="form-label">Nama Depan *</label>
-              <input type="text" className="form-input w-full" placeholder="Mona" required />
-            </div>
-            <div className="space-y-2">
-              <label className="form-label">Last Name *</label>
-              <input type="text" className="form-input w-full" placeholder="William" required />
-            </div>
-            <div className="space-y-2">
-              <label className="form-label">Email *</label>
-              <input type="email" className="form-input w-full" placeholder="Mona@mail.com" required />
-            </div>
-            <div className="space-y-2">
-              <label className="form-label">No. Telepon *</label>
-              <input type="tel" className="form-input w-full" placeholder="+1234567890" required />
-            </div>
-            <div className="md:col-span-2 space-y-2">
-              <label className="form-label">Alamat *</label>
-              <textarea className="form-input form-textarea w-full" placeholder="Jl. Raya No. 123..." required></textarea>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-4">
-          <button type="button" className="btn-draft flex items-center gap-2">
-             <Save className="w-4 h-4" />
-             Simpan sebagai Draf
+        <div className="mt-10 pt-6 border-t border-slate-50 flex justify-end gap-3">
+          <button 
+            type="button"
+            onClick={onBack}
+            className="px-6 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition-all"
+          >
+            Batal
           </button>
-          <button type="submit" className="btn-submit flex items-center gap-2">
-             <Send className="w-4 h-4" />
-             Kirim
+          <button 
+            type="submit"
+            disabled={isSubmitting}
+            className="px-8 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-sm font-black shadow-lg shadow-indigo-100 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+          >
+            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {isSubmitting ? "Menyimpan..." : "Simpan Siswa"}
           </button>
         </div>
-      </form>
+      </motion.form>
     </div>
   );
 }

@@ -1,152 +1,104 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { 
-  Plus, 
-  ChevronDown, 
-  MoreHorizontal, 
-  ChevronLeft, 
-  ChevronRight,
-  Loader2 
-} from "lucide-react";
-import { 
-  getGuruList, 
-  createGuru, 
-  updateGuru, 
-  deleteGuru 
+import { Loader2, Save, X } from "lucide-react";
+import { PageHeader } from "../../../ui/PageHeader";
+import { DataTable } from "../../../ui/DataTable";
+import { FormModal } from "../../../ui/FormModal";
+import { ConfirmDialog } from "../../../ui/ConfirmDialog";
+import {
+  getGuruList,
+  createGuru,
+  updateGuru,
+  deleteGuru,
 } from "../../../../services/guruService";
-import { dummyTeachers } from "../../../../data/dummyData";
-import "./StudentsPage.css"; // Reuse animations
 
-export function TeachersPage({ searchQuery = "", onAddClick }) {
+export function TeachersPage({ searchQuery = "", userRole = "siswa" }) {
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState({ name: "", nip: "", email: "" });
+  
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const [localSearch, setLocalSearch] = useState("");
+
+  // Role Checks: ONLY ADMIN can CRUD Teachers
+  const canCRUD = userRole === "admin";
+
+  useEffect(() => { loadData(); }, []);
 
   async function loadData() {
     setIsLoading(true);
     try {
       const result = await getGuruList();
-      if (result && result.length > 0) {
-        setData(result);
-      } else {
-        setData(dummyTeachers);
-      }
+      setData(result);
     } catch (err) {
-      console.warn("API failed, using dummy data:", err.message);
-      setData(dummyTeachers);
-      setError("Gagal memuat dari server. Menampilkan data dummy.");
+      setError("Gagal memuat data guru.");
     } finally {
       setIsLoading(false);
     }
   }
 
-  const combinedSearch = searchQuery.trim().toLowerCase();
-
+  const combinedSearch = (searchQuery || localSearch).trim().toLowerCase();
   const filteredData = useMemo(() => {
     if (!combinedSearch) return data;
     return data.filter((item) =>
-      `${item.name} ${item.email}`
-        .toLowerCase()
-        .includes(combinedSearch),
+      `${item.name} ${item.nip}`.toLowerCase().includes(combinedSearch)
     );
   }, [data, combinedSearch]);
 
-  const stats = useMemo(() => {
-    const total = data.length;
-    const laki = data.filter(s => s.gender === 'L').length;
-    const perempuan = data.filter(s => s.gender === 'P').length;
-    return { total, laki, perempuan };
-  }, [data]);
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <Loader2 className="w-10 h-10 animate-spin text-[#030213]" />
-        <p className="text-sm font-bold text-slate-500 tracking-wide">MEMUAT DATA GURU...</p>
-      </div>
-    );
-  }
+  const columns = [
+    {
+      key: "avatar",
+      header: "",
+      render: (item) => (
+        <div className="avatar-wrapper mx-auto">
+          <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${item.name}`} alt="" className="w-full h-full object-cover rounded-full" />
+        </div>
+      ),
+    },
+    { key: "name", header: "Nama Guru", accessor: (item) => item.name || "-" },
+    { key: "nip", header: "NIP", accessor: (item) => item.nip || "-" },
+    { key: "mapel", header: "Mata Pelajaran", accessor: (item) => item.mapel || item.subject_name || "-" },
+    { key: "status", header: "Status", render: (item) => (
+      <span className="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-black rounded-full uppercase">Aktif</span>
+    )},
+  ];
 
   return (
-    <div className="p-6 lg:p-10 space-y-8 animate-in fade-in duration-500">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <h1 className="text-4xl font-extrabold tracking-tight text-[#030213]">Guru Kelas</h1>
-        
-        <div className="flex items-center gap-4">
-          <button className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-slate-50 rounded-2xl font-bold shadow-sm hover:bg-slate-50 transition-all">
-            <span>Kelas 11 B</span>
-            <ChevronDown className="w-4 h-4" />
-          </button>
+    <div className="space-y-4">
+      <PageHeader
+        title="Daftar Guru"
+        subtitle="Tenaga pengajar profesional sekolah"
+        searchQuery={localSearch}
+        onSearchChange={setLocalSearch}
+        onAddClick={canCRUD ? () => setIsModalOpen(true) : undefined}
+        addButtonLabel="Tambah Guru"
+      />
 
-          <button className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-slate-50 rounded-2xl font-bold shadow-sm hover:bg-slate-50 transition-all">
-            <span>Terbaru</span>
-            <ChevronDown className="w-4 h-4" />
-          </button>
+      <DataTable
+        columns={columns}
+        data={filteredData}
+        isLoading={isLoading}
+        onEdit={canCRUD ? (item) => { setEditingId(item.id); setForm(item); setIsModalOpen(true); } : undefined}
+        onDelete={canCRUD ? (item) => setDeleteTarget(item) : undefined}
+      />
 
-          <button 
-            onClick={onAddClick}
-            className="flex items-center gap-2 px-6 py-3 bg-[#030213] text-white rounded-2xl font-bold hover:scale-105 active:scale-95 transition-all shadow-lg shadow-black/10"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Tambah Guru</span>
-          </button>
-        </div>
-      </div>
+      {canCRUD && isModalOpen && (
+        <FormModal isOpen={isModalOpen} title={editingId ? "Edit Guru" : "Tambah Guru"} onClose={() => setIsModalOpen(false)}>
+           <div className="p-4">
+             <p className="text-sm text-slate-500 mb-4">Hanya Admin yang dapat mengelola akun guru.</p>
+             {/* Form Fields... */}
+           </div>
+        </FormModal>
+      )}
 
-      {/* Grid Content */}
-      <div className="teacher-grid">
-        {filteredData.map((teacher) => (
-          <div key={teacher.id} className="teacher-card group">
-            <button className="teacher-card-menu">
-              <MoreHorizontal className="w-5 h-5" />
-            </button>
-            
-            <div className="teacher-avatar-large">
-              <img 
-                src={`https://i.pravatar.cc/150?u=teacher${teacher.id}`} 
-                alt="" 
-                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-              />
-            </div>
-            
-            <h3 className="teacher-name">{teacher.name}</h3>
-            <p className="teacher-subject">{teacher.subject || "Mathematics"}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Footer Stats & Pagination */}
-      <div className="premium-card mt-12">
-        <div className="stats-footer">
-          <div className="flex items-center gap-12">
-            <div className="stat-item">
-              <span>Total:</span>
-              <span className="stat-value">{stats.total}</span>
-            </div>
-            <div className="stat-item">
-              <span>Guru laki:</span>
-              <span className="stat-value">{stats.laki}</span>
-            </div>
-            <div className="stat-item">
-              <span>Guru Wanita:</span>
-              <span className="stat-value">{stats.perempuan}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button className="p-1 text-slate-300 hover:text-slate-600"><ChevronLeft className="w-5 h-5" /></button>
-            <div className="pagination-dot active">1</div>
-            <div className="pagination-dot">2</div>
-            <div className="pagination-dot">3</div>
-            <button className="p-1 text-slate-400 hover:text-slate-600"><ChevronRight className="w-5 h-5" /></button>
-          </div>
-        </div>
-      </div>
+      <ConfirmDialog isOpen={!!deleteTarget} onConfirm={async () => { /* Delete */ setDeleteTarget(null); }} onCancel={() => setDeleteTarget(null)} />
     </div>
   );
 }

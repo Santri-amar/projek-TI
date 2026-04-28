@@ -21,9 +21,9 @@ export function Dashboard() {
     }
   }, [isLoggedIn, navigate]);
 
-  const userRole =
-    user?.role === "guru" || user?.role === "siswa" ? user.role : "admin";
-  const userName = user?.name || "Ahmad";
+  const rawRole = user?.role?.toLowerCase() || "";
+  const userRole = (rawRole === "guru" || rawRole === "siswa") ? rawRole : "admin";
+  const userName = user?.name || "User";
 
   const handleMenuClick = (menuId) => {
     setActiveMenu(menuId);
@@ -38,10 +38,11 @@ export function Dashboard() {
       attendance: "Absensi",
       grades: "Nilai",
       announcements: "Pengumuman",
-      reports: "Laporan",
-      settings: "Pengaturan",
-      "my-classes": "Kelas Saya",
       profile: "Profil",
+      settings: "Pengaturan",
+      "add-student": "Tambah Siswa",
+      "add-teacher": "Tambah Guru",
+      "add-exam-grade": "Input Nilai Ujian",
     };
     setPageTitle(titles[menuId] || "Dashboard");
   };
@@ -83,7 +84,7 @@ export function Dashboard() {
         onLogout={handleLogout}
       />
 
-      <div className="ml-0 lg:ml-[280px] transition-all">
+      <div className="dashboard-content-wrapper">
         <TopNavbar
           pageTitle={pageTitle}
           userName={userName}

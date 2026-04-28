@@ -63,13 +63,15 @@ export function Sidebar({ role, activeMenu, onMenuClick, onLogout }) {
           <img src="/logo-owl.png" alt="Schools Logo" className="w-10 h-10 object-contain" />
           <div>
             <h1 className="font-extrabold text-xl tracking-tight text-[#4338ca]">SCHOOLS</h1>
-            <p className="sidebar-school-badge">Admin Panel</p>
+            <p className="sidebar-school-badge">
+              {role === "guru" ? "Panel Guru" : role === "siswa" ? "Panel Siswa" : "Admin Panel"}
+            </p>
           </div>
         </div>
       </div>
 
       {/* Navigation - Flat List as requested */}
-      <nav className="flex-1 px-3 py-6 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 py-6 space-y-0.5 overflow-y-auto overflow-x-hidden">
         {menus.map((menu) => {
           const Icon = menu.icon;
           const isActive = activeMenu === menu.id;
@@ -85,8 +87,11 @@ export function Sidebar({ role, activeMenu, onMenuClick, onLogout }) {
                 isActive ? "active" : ""
               }`}
             >
-              <Icon className={`w-5 h-5 ${isActive ? "text-white" : "text-slate-400"}`} />
-              <span className={`font-semibold text-[13px] ${isActive ? "text-white" : "text-slate-600"}`}>
+              <Icon 
+                strokeWidth={2.5} 
+                className={`w-[18px] h-[18px] ${isActive ? "text-white" : "text-slate-500"}`} 
+              />
+              <span className={`font-bold text-[13px] ${isActive ? "text-white" : "text-slate-700"}`}>
                 {menu.label}
               </span>
             </button>
@@ -100,8 +105,8 @@ export function Sidebar({ role, activeMenu, onMenuClick, onLogout }) {
           onClick={onLogout}
           className="w-full flex items-center gap-3 px-4 py-3 logout-btn group"
         >
-          <LogOut className="w-5 h-5 text-red-500 group-hover:scale-110 transition-transform" />
-          <span className="text-[14px]">Logout</span>
+          <LogOut strokeWidth={2.5} className="w-5 h-5 text-red-500 group-hover:scale-110 transition-transform" />
+          <span className="text-[14px] font-bold">Logout</span>
         </button>
       </div>
     </div>
@@ -118,7 +123,7 @@ export function Sidebar({ role, activeMenu, onMenuClick, onLogout }) {
       </button>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block w-[280px] h-screen fixed left-0 top-0 z-50">
+      <aside className="hidden lg:block w-[260px] h-screen fixed left-0 top-0 z-50">
         <SidebarContent />
       </aside>
 

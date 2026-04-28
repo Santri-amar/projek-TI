@@ -40,7 +40,7 @@ export function PageHeader({
           </div>
 
           {/* Add Button */}
-          {showAdd && (
+          {showAdd && onAddClick && (
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}

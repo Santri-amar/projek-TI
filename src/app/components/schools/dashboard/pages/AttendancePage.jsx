@@ -1,166 +1,170 @@
-import { useState } from "react";
-import { motion } from "motion/react";
+import { useEffect, useState } from "react";
 import { 
-  Camera, 
-  User, 
-  Calendar, 
-  Clock, 
+  ClipboardCheck, 
+  Users, 
+  Search, 
+  Loader2, 
+  Save, 
   CheckCircle2, 
-  XCircle,
-  Plus,
-  ChevronDown,
-  Edit,
-  Loader2
+  XCircle, 
+  Clock,
+  Calendar
 } from "lucide-react";
-import "./StudentsPage.css"; 
+import { motion } from "motion/react";
+import { PageHeader } from "../../../ui/PageHeader";
+import { getSiswaList } from "../../../../services/siswaService";
+import { createAbsensi } from "../../../../services/absensiService";
 
-export function AttendancePage() {
-  const [activeTab, setActiveTab] = useState("input"); // 'input' or 'history'
+export function AttendancePage({ searchQuery = "", userRole = "siswa" }) {
+  const [students, setStudents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [attendance, setAttendance] = useState({}); // { studentId: status }
+  const [selectedClass, setSelectedClass] = useState("X-A");
+  const [message, setMessage] = useState("");
 
-  const historyData = Array(9).fill({
-    name: "Inayatul Maula",
-    nim: "2021400243",
-    subject: "Data Mining",
-    date: "Rabu, 14 Maret 2023 10:32 WIB",
-    status: "HADIR"
-  }).map((item, idx) => idx % 2 === 1 ? {...item, status: 'IZIN', subject: 'Sistem Mikroprosesor', date: 'Rabu, 15 Maret 2023 09:20 WIB'} : item);
+  const canCRUD = userRole === "admin" || userRole === "guru";
+
+  useEffect(() => {
+    loadStudents();
+  }, [selectedClass]);
+
+  async function loadStudents() {
+    setIsLoading(true);
+    try {
+      const result = await getSiswaList();
+      // Filter by class if needed
+      setStudents(result);
+      // Initialize all as 'Hadir'
+      const initial = {};
+      result.forEach(s => initial[s.id] = "Hadir");
+      setAttendance(initial);
+    } catch (err) {
+      console.error("Failed to load students");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleStatusChange = (id, status) => {
+    setAttendance(prev => ({ ...prev, [id]: status }));
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // API call to save bulk attendance
+      await createAbsensi({ class: selectedClass, date: new Date().toISOString(), data: attendance });
+      setMessage("✅ Absensi berhasil disimpan!");
+      setTimeout(() => setMessage(""), 3000);
+    } catch (err) {
+      alert("Gagal menyimpan absensi");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (userRole === "siswa") {
+    return (
+      <div className="p-8 text-center bg-white border border-[#E3EAF5] rounded-3xl">
+         <Clock className="w-16 h-16 text-indigo-500 mx-auto mb-4" />
+         <h3 className="text-xl font-black text-[#111827]">Riwayat Absensi</h3>
+         <p className="text-slate-500 font-medium max-w-sm mx-auto mt-2">
+            Silakan buka tab <strong>Dashboard</strong> atau <strong>Absensi Saya</strong> untuk melihat statistik kehadiran Anda.
+         </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 md:p-6 lg:p-10 space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <h1 className="text-4xl font-extrabold tracking-tight text-[#030213]">
-          {activeTab === 'input' ? 'ABSENSI' : 'RIWAYAT ABSENSI'}
-        </h1>
-        
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => setActiveTab('input')}
-            className={`px-6 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === 'input' ? 'bg-[#030213] text-white' : 'bg-white text-slate-500 border border-slate-200'}`}
-          >
-            Absensi Baru
-          </button>
-          <button 
-            onClick={() => setActiveTab('history')}
-            className={`px-6 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === 'history' ? 'bg-[#030213] text-white' : 'bg-white text-slate-500 border border-slate-200'}`}
-          >
-            Riwayat
-          </button>
+    <div className="space-y-6">
+      <PageHeader 
+        title="Input Absensi" 
+        subtitle={`Manajemen kehadiran siswa kelas ${selectedClass}`}
+      />
+
+      <div className="bg-white border border-[#E3EAF5] rounded-[2.5rem] p-8 md:p-10 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 pb-8 border-b border-slate-50">
+           <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center">
+                 <Users className="w-7 h-7 text-indigo-600" />
+              </div>
+              <div>
+                 <h4 className="text-xl font-black text-[#111827]">Daftar Hadir</h4>
+                 <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Hari ini: {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+              </div>
+           </div>
+           
+           <div className="flex items-center gap-3">
+              <select 
+                value={selectedClass} 
+                onChange={e => setSelectedClass(e.target.value)}
+                className="px-6 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:border-indigo-500 outline-none transition-all appearance-none min-w-[150px]"
+              >
+                <option value="X-A">Kelas X-A</option>
+                <option value="X-B">Kelas X-B</option>
+                <option value="XI-A">Kelas XI-A</option>
+              </select>
+              <button 
+                onClick={handleSave}
+                disabled={isSaving}
+                className="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2 disabled:opacity-50"
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                Simpan
+              </button>
+           </div>
         </div>
-      </div>
 
-      <div className="form-section-card shadow-xl shadow-black/[0.02]">
-        {activeTab === 'input' ? (
-          <div className="view-content !p-0">
-             <div className="max-w-3xl mx-auto p-10 space-y-8">
-                {/* Selfie Box */}
-                <div className="space-y-2">
-                   <label className="text-[10px] font-bold text-slate-700">Ambil Foto Selfie</label>
-                   <div className="file-upload-zone h-[180px] flex items-center justify-center border-dashed">
-                      <Camera className="w-8 h-8 text-slate-300" />
-                   </div>
-                </div>
-
-                {/* Form Fields */}
-                <div className="space-y-6">
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-700 uppercase">Nama Anda</label>
-                      <input type="text" className="form-input w-full" placeholder="Masukkan nama" />
-                   </div>
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-700 uppercase">NIM</label>
-                      <input type="text" className="form-input w-full" placeholder="Masukkan NIM" />
-                   </div>
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-700 uppercase">Tanggal & Waktu</label>
-                      <input type="text" className="form-input w-full" placeholder="Otomatis terisi" disabled />
-                   </div>
-
-                   {/* Radio Status */}
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-700 uppercase">Keterangan</label>
-                      <div className="flex items-center gap-12 pt-2">
-                         <label className="flex items-center gap-2 cursor-pointer group">
-                            <div className="w-5 h-5 rounded-full border-2 border-slate-300 group-hover:border-[#030213] flex items-center justify-center">
-                               <div className="w-2.5 h-2.5 bg-[#030213] rounded-full opacity-0 group-has-[:checked]:opacity-100 transition-all"></div>
-                            </div>
-                            <input type="radio" name="status" className="hidden" defaultChecked />
-                            <span className="text-sm font-bold text-slate-600">Hadir</span>
-                         </label>
-                         <label className="flex items-center gap-2 cursor-pointer group">
-                            <div className="w-5 h-5 rounded-full border-2 border-slate-300 group-hover:border-[#030213] flex items-center justify-center">
-                               <div className="w-2.5 h-2.5 bg-[#030213] rounded-full opacity-0 group-has-[:checked]:opacity-100 transition-all"></div>
-                            </div>
-                            <input type="radio" name="status" className="hidden" />
-                            <span className="text-sm font-bold text-slate-600">Izin</span>
-                         </label>
-                         <label className="flex items-center gap-2 cursor-pointer group">
-                            <div className="w-5 h-5 rounded-full border-2 border-slate-300 group-hover:border-[#030213] flex items-center justify-center">
-                               <div className="w-2.5 h-2.5 bg-[#030213] rounded-full opacity-0 group-has-[:checked]:opacity-100 transition-all"></div>
-                            </div>
-                            <input type="radio" name="status" className="hidden" />
-                            <span className="text-sm font-bold text-slate-600">Telat</span>
-                         </label>
-                      </div>
-                   </div>
-
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-700 uppercase">Keterangan</label>
-                      <textarea className="form-input form-textarea w-full" placeholder="Tambahkan catatan jika perlu"></textarea>
-                   </div>
-
-                   <button className="w-full py-4 bg-[#030213] text-white rounded-lg font-bold text-lg shadow-xl shadow-black/10 active:scale-95 transition-all">
-                      Simpan
-                   </button>
-                </div>
-             </div>
-          </div>
-        ) : (
-          <div className="view-content !p-10 space-y-10 bg-[#F9FAFB]">
-             {/* Toolbar */}
-             <div className="flex flex-col sm:flex-row items-center justify-end gap-4">
-                <button className="flex items-center justify-between gap-4 px-6 py-2 bg-white border border-slate-100 rounded-xl w-48 font-bold text-sm shadow-sm">
-                  <span>Terbaru</span>
-                  <ChevronDown className="w-4 h-4 text-slate-300" />
-                </button>
-                <button className="flex items-center gap-2 px-6 py-2 bg-white border border-slate-100 rounded-xl font-bold text-sm shadow-sm">
-                  <Plus className="w-4 h-4 text-[#030213]" />
-                  <span>Tambah Guru</span>
-                </button>
-             </div>
-
-             {/* Grid History */}
-             <div className="attendance-grid">
-                {historyData.map((item, idx) => (
-                  <div key={idx} className="attendance-card bg-white">
-                    <span className={`attendance-status-badge ${item.status === 'HADIR' ? 'status-hadir' : 'status-izin'}`}>
-                      {item.status}
-                    </span>
-                    
-                    <div className="attendance-avatar mt-4">
-                      <img 
-                        src={`https://i.pravatar.cc/150?u=student${idx}`} 
-                        alt="" 
-                        className="w-full h-full object-cover grayscale"
-                      />
-                    </div>
-
-                    <div className="flex flex-col justify-center gap-1">
-                      <p className="text-[10px] font-bold text-slate-400">{item.date}</p>
-                      <h4 className="text-sm font-bold text-[#030213] leading-tight">
-                        Nama : {item.name}<br/>
-                        NIM : {item.nim}<br/>
-                        Makul : {item.subject}
-                      </h4>
-                    </div>
-
-                    <button className="attendance-edit-btn">
-                      <Edit className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-             </div>
-          </div>
+        {message && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 p-4 bg-green-50 text-green-600 rounded-2xl text-sm font-bold text-center border border-green-100">
+             {message}
+          </motion.div>
         )}
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="text-left">
+                <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest px-4">Siswa</th>
+                <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center px-4">Hadir</th>
+                <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center px-4">Izin</th>
+                <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center px-4">Sakit</th>
+                <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center px-4">Alpa</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {students.map((student) => (
+                <tr key={student.id} className="group hover:bg-slate-50/50 transition-colors">
+                  <td className="py-4 px-4">
+                    <div className="flex items-center gap-3">
+                       <div className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-500 text-xs">
+                          {student.name?.charAt(0)}
+                       </div>
+                       <span className="text-sm font-bold text-slate-700">{student.name}</span>
+                    </div>
+                  </td>
+                  {["Hadir", "Izin", "Sakit", "Alpa"].map((status) => (
+                    <td key={status} className="py-4 px-4 text-center">
+                      <button 
+                        onClick={() => handleStatusChange(student.id, status)}
+                        className={`w-6 h-6 rounded-full border-2 transition-all mx-auto flex items-center justify-center ${
+                          attendance[student.id] === status 
+                          ? status === 'Hadir' ? 'bg-green-500 border-green-500 text-white' 
+                            : status === 'Alpa' ? 'bg-red-500 border-red-500 text-white'
+                            : 'bg-amber-500 border-amber-500 text-white'
+                          : 'border-slate-200 hover:border-indigo-400'
+                        }`}
+                      >
+                        {attendance[student.id] === status && <CheckCircle2 className="w-4 h-4" />}
+                      </button>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

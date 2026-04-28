@@ -3,15 +3,42 @@
   background-color: #ffffff;
   border-right: 1px solid #f1f5f9;
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02);
+  overflow-x: hidden;
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  -webkit-overflow-scrolling: touch;
+}
+
+.sidebar-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.sidebar-container {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Pastikan nav juga tidak memunculkan scrollbar samping */
+.sidebar-container nav {
+  overflow-x: hidden;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.sidebar-container nav::-webkit-scrollbar {
+  display: none;
 }
 
 .sidebar-menu-item {
   position: relative;
-  border-radius: 12px;
-  margin: 4px 12px;
-  padding: 12px 16px;
+  border-radius: 14px;
+  margin: 6px 16px; /* Margin ditingkatkan agar card lebih ke tengah */
+  padding: 12px 20px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   color: #64748b;
+  display: flex;
+  align-items: center;
+  width: calc(100% - 32px); /* Memaksa card simetris */
 }
 
 .sidebar-menu-item:hover {
@@ -92,10 +119,35 @@
   color: #0f172a;
 }
 
-/* Content Area */
-.dashboard-main-content {
-  background-color: #ffffff;
-  min-height: calc(100vh - 80px);
+/* Dashboard Layout Adjustments */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.dashboard-content-wrapper {
+  flex: 1;
+  margin-left: 260px; /* Sesuai lebar sidebar baru */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-content-wrapper {
+    margin-left: 0;
+    width: 100%;
+  }
 }
 
 /* Card Overhaul */
@@ -210,7 +262,7 @@
 
 .stat-value {
   font-weight: 800;
-  color: #030213;
+  color: #1e1b4b;
   font-size: 16px;
 }
 
@@ -229,9 +281,9 @@
 }
 
 .pagination-dot.active {
-  background: #030213;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   color: white;
-  border-color: #030213;
+  border-color: #6366f1;
 }
 
 /* Teacher Card Styles */
@@ -271,7 +323,7 @@
 .teacher-name {
   font-size: 18px;
   font-weight: 800;
-  color: #030213;
+  color: #1e1b4b;
   margin-bottom: 4px;
 }
 
@@ -315,7 +367,7 @@
   display: block;
   font-size: 14px;
   font-weight: 700;
-  color: #030213;
+  color: #1e1b4b;
   margin-bottom: 8px;
 }
 
@@ -327,13 +379,13 @@
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.2s;
-  color: #030213;
+  color: #1e1b4b;
 }
 
 .form-input:focus {
-  border-color: #030213;
+  border-color: #6366f1;
   outline: none;
-  box-shadow: 0 0 0 4px rgba(3, 2, 19, 0.05);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
 .form-input::placeholder {
@@ -357,7 +409,7 @@
 }
 
 .file-upload-zone:hover {
-  border-color: #030213;
+  border-color: #6366f1;
   background: #f8fafc;
 }
 
@@ -367,7 +419,7 @@
   border-radius: 12px;
   font-weight: 700;
   font-size: 14px;
-  color: #030213;
+  color: #1e1b4b;
 }
 
 .btn-submit {
@@ -462,7 +514,7 @@
 
 .requirements-title {
   font-weight: 800;
-  color: #030213;
+  color: #1e1b4b;
   margin-bottom: 8px;
   display: block;
 }
@@ -478,7 +530,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  background: #E5E5E5;
+  background: #f1f5f9;
 }
 
 .schedule-table th {
@@ -498,12 +550,13 @@
 }
 
 .schedule-time-col {
-  background: #CCCCCC;
+  background: #e0e7ff;
   font-weight: 700;
+  color: #4338ca;
 }
 
 .schedule-cell {
-  background: #CCCCCC;
+  background: #f8fafc;
   min-width: 120px;
 }
 
@@ -581,4 +634,20 @@
   color: white;
   padding: 4px;
   border-radius: 4px;
+}
+
+/* ─── Animated Components ─── */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.2); }
+  50% { box-shadow: 0 0 20px 4px rgba(99, 102, 241, 0.15); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
 }

@@ -1,183 +1,218 @@
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import {
   Calendar,
   BarChart3,
   ClipboardCheck,
   Megaphone,
-  BookOpen,
   Clock,
   TrendingUp,
   Award,
+  BookOpen,
+  Loader2,
+  ArrowRight
 } from "lucide-react";
+import {
+  SplitText,
+  AnimatedCounter,
+  FadeInUp,
+  StaggerContainer,
+  StaggerItem,
+} from "../../ui/AnimatedComponents";
+import { getSiswaDashboardOverview } from "../../../services/dashboardService";
 
-const upcomingSchedule = [
-  { hari: "Senin", mapel: "Matematika", jam: "07:00 - 09:00", ruang: "R-101", guru: "Dr. Siti Aminah" },
-  { hari: "Senin", mapel: "Fisika", jam: "09:30 - 11:30", ruang: "Lab Fisika", guru: "Hadi Wijaya" },
-  { hari: "Selasa", mapel: "Biologi", jam: "08:00 - 10:00", ruang: "Lab Biologi", guru: "Rina Susanti" },
-];
+export function StudentDashboard({ userName = "Siswa", onNavigate }) {
+  const [dashData, setDashData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-const recentGrades = [
-  { mapel: "Matematika", jenis: "Tugas", nilai: 85, tanggal: "15 Jan 2025" },
-  { mapel: "Fisika", jenis: "UTS", nilai: 88, tanggal: "10 Jan 2025" },
-  { mapel: "Biologi", jenis: "Tugas", nilai: 78, tanggal: "14 Jan 2025" },
-];
+  useEffect(() => {
+    async function loadDashboard() {
+      try {
+        const data = await getSiswaDashboardOverview();
+        setDashData(data);
+      } catch (err) {
+        console.error("Failed to load dashboard:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadDashboard();
+  }, []);
 
-const announcements = [
-  { title: "Ujian Tengah Semester", date: "20 Jan 2025", priority: "high" },
-  { title: "Libur Nasional", date: "17 Agt 2025", priority: "normal" },
-];
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
+      </div>
+    );
+  }
 
-export function StudentDashboard({ userName = "Siswa" }) {
+  const stats = dashData?.stats || {
+    todayAttendancePercent: 0,
+    rataRataNilai: 0,
+    tugasAktif: 0,
+    ranking: "0/0"
+  };
+
+  const upcomingSchedule = dashData?.upcomingSchedule || [];
+  const recentGrades = dashData?.recentGrades || [];
+
+  const currentHour = new Date().getHours();
+  const greeting = currentHour < 12 ? "Selamat Pagi" : currentHour < 17 ? "Selamat Siang" : "Selamat Malam";
+
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
       {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-[#EEF4FF] to-[#F8F5FF] border border-[#DCE7F8] rounded-2xl p-6">
-        <h1 className="text-2xl font-bold text-[#111827] mb-2">
-          Selamat Datang, {userName}! 👋
-        </h1>
-        <p className="text-sm text-[#6B7280]">
-          Berikut ringkasan aktivitas belajar Anda hari ini.
-        </p>
-      </div>
+      <FadeInUp>
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#EEF4FF] via-[#F0EBFF] to-[#F8F5FF] border border-[#DCE7F8] rounded-3xl p-6 md:p-8">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-blue-200/20 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-bold text-indigo-500 mb-1 tracking-wide uppercase">{greeting} 👋</p>
+              <h1 className="text-2xl md:text-4xl font-black text-[#111827] mb-2 tracking-tight">
+                <SplitText text={`Halo, ${userName}!`} />
+              </h1>
+              <p className="text-sm text-slate-500 font-medium max-w-md">
+                Tetap semangat belajarnya ya! Berikut ringkasan progres akademik Anda hari ini.
+              </p>
+            </div>
+            <div className="bg-white/50 backdrop-blur-md p-4 rounded-2xl border border-white/50 flex items-center gap-4">
+              <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100">
+                <TrendingUp className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Progres Belajar</p>
+                <p className="text-lg font-black text-indigo-600">+12.5% <span className="text-slate-400 text-xs font-bold">bulan ini</span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </FadeInUp>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Interactive Stats Grid */}
+      <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-4" staggerDelay={0.08}>
         {[
-          { icon: Calendar, label: "Jadwal Hari Ini", value: "5 Mapel", color: "#3B82F6" },
-          { icon: BarChart3, label: "Rata-rata Nilai", value: "85.3", color: "#10B981" },
-          { icon: ClipboardCheck, label: "Kehadiran", value: "95%", color: "#F59E0B" },
-          { icon: Award, label: "Ranking", value: "5/30", color: "#8B5CF6" },
-        ].map((stat, idx) => {
+          { id: "schedule", icon: Calendar, label: "Jadwal Hari Ini", value: upcomingSchedule.length, suffix: " Mapel", color: "text-blue-600", bg: "bg-blue-50" },
+          { id: "grades", icon: BarChart3, label: "Rata-rata Nilai", value: stats.rataRataNilai || 0, color: "text-emerald-600", bg: "bg-emerald-50" },
+          { id: "attendance", icon: ClipboardCheck, label: "Kehadiran", value: stats.todayAttendancePercent || 0, suffix: "%", color: "text-amber-600", bg: "bg-amber-50" },
+          { id: "profile", icon: Award, label: "Ranking", value: stats.ranking?.split('/')[0] || 0, suffix: `/${stats.ranking?.split('/')[1] || 0}`, color: "text-purple-600", bg: "bg-purple-50" },
+        ].map((stat) => {
           const Icon = stat.icon;
           return (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
-              className="bg-white border border-[#E3EAF5] rounded-2xl p-4 hover:shadow-md transition"
-            >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-                style={{ backgroundColor: `${stat.color}15` }}
+            <StaggerItem key={stat.label}>
+              <motion.button
+                onClick={() => onNavigate(stat.id)}
+                whileHover={{ y: -5, shadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)" }}
+                className="w-full text-left bg-white border border-[#E3EAF5] rounded-3xl p-5 transition-all group relative overflow-hidden"
               >
-                <Icon className="w-5 h-5" style={{ color: stat.color }} />
-              </div>
-              <p className="text-xs text-[#6B7280] mb-1">{stat.label}</p>
-              <h3 className="text-xl font-extrabold text-[#111827]">{stat.value}</h3>
-            </motion.div>
+                <div className={`absolute top-0 right-0 w-16 h-16 ${stat.bg} rounded-full translate-x-8 -translate-y-8 opacity-50 group-hover:scale-150 transition-transform`} />
+                <div className="relative z-10">
+                  <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center mb-4`}>
+                    <Icon className={`w-5 h-5 ${stat.color}`} />
+                  </div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{stat.label}</p>
+                  <h3 className="text-2xl font-black text-[#111827] flex items-baseline gap-1">
+                    <AnimatedCounter value={Number(stat.value)} duration={1.5} />
+                    <span className="text-xs font-bold text-slate-400">{stat.suffix || ""}</span>
+                  </h3>
+                </div>
+              </motion.button>
+            </StaggerItem>
           );
         })}
-      </div>
+      </StaggerContainer>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Today's Schedule */}
-        <div className="bg-white border border-[#E3EAF5] rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Clock className="w-5 h-5 text-blue-600" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Clickable Schedule Card */}
+        <FadeInUp delay={0.2} className="bg-white border border-[#E3EAF5] rounded-[2rem] p-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
+                <Clock className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-[#111827]">Jadwal Hari Ini</h3>
-                <p className="text-xs text-[#6B7280]">Senin, 20 Januari 2025</p>
+                <h3 className="text-xl font-black text-[#111827]">Jadwal Terdekat</h3>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Senin, 27 April 2026</p>
               </div>
             </div>
-          </div>
-
-          <div className="space-y-3">
-            {upcomingSchedule.slice(0, 2).map((item, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                className="flex items-center gap-4 p-4 bg-[#EEF4FF] rounded-xl"
-              >
-                <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center text-sm font-bold text-[#4DA3FF]">
-                  {item.jam.split(" - ")[0]}
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-[#111827]">{item.mapel}</p>
-                  <p className="text-xs text-[#6B7280]">{item.guru} • {item.ruang}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs font-medium text-[#4DA3FF]">{item.jam}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* Recent Grades */}
-        <div className="bg-white border border-[#E3EAF5] rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-[#111827]">Nilai Terbaru</h3>
-                <p className="text-xs text-[#6B7280]">Semester Ganjil 2024/2025</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {recentGrades.map((item, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                className="flex items-center justify-between p-4 bg-[#EEF4FF] rounded-xl"
-              >
-                <div>
-                  <p className="font-semibold text-[#111827]">{item.mapel}</p>
-                  <p className="text-xs text-[#6B7280]">{item.jenis} • {item.tanggal}</p>
-                </div>
-                <div className={`text-2xl font-bold ${
-                  item.nilai >= 80 ? "text-green-600" :
-                  item.nilai >= 60 ? "text-yellow-600" : "text-red-600"
-                }`}>
-                  {item.nilai}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Announcements */}
-      <div className="bg-white border border-[#E3EAF5] rounded-2xl p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-            <Megaphone className="w-5 h-5 text-purple-600" />
-          </div>
-          <h3 className="text-lg font-bold text-[#111827]">Pengumuman</h3>
-        </div>
-
-        <div className="space-y-3">
-          {announcements.map((item, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
-              className="flex items-center justify-between p-4 bg-[#EEF4FF] rounded-xl"
+            <button 
+              onClick={() => onNavigate("schedule")}
+              className="p-2 hover:bg-slate-50 rounded-xl transition-colors group"
             >
-              <div className="flex items-center gap-3">
-                <div className={`w-2 h-2 rounded-full ${
-                  item.priority === "high" ? "bg-red-500" : "bg-blue-500"
-                }`} />
-                <p className="font-medium text-[#111827]">{item.title}</p>
+              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+            </button>
+          </div>
+          
+          <div className="space-y-4">
+            {upcomingSchedule.length > 0 ? (
+              upcomingSchedule.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-5 p-5 bg-slate-50 rounded-2xl border border-transparent hover:border-blue-100 hover:bg-white transition-all group cursor-pointer">
+                   <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex flex-col items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                      <span className="text-[10px] font-black text-blue-600 uppercase">Jam</span>
+                      <span className="text-sm font-black text-slate-800">{item.jam?.split(":")[0] || "--"}</span>
+                   </div>
+                   <div className="flex-1">
+                      <h4 className="font-bold text-[#111827] text-lg">{item.mapel || item.subject_name}</h4>
+                      <p className="text-xs text-slate-500 font-medium flex items-center gap-2 mt-1">
+                        <User className="w-3 h-3" /> {item.guru || item.teacher_name}
+                      </p>
+                   </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-10">
+                <p className="text-slate-400 font-medium italic">Tidak ada jadwal hari ini.</p>
               </div>
-              <p className="text-xs text-[#6B7280]">{item.date}</p>
-            </motion.div>
-          ))}
-        </div>
+            )}
+          </div>
+        </FadeInUp>
+
+        {/* Clickable Grades Card */}
+        <FadeInUp delay={0.3} className="bg-white border border-[#E3EAF5] rounded-[2rem] p-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center">
+                <BarChart3 className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-[#111827]">Nilai Terbaru</h3>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Hasil Ujian Terakhir</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => onNavigate("grades")}
+              className="p-2 hover:bg-slate-50 rounded-xl transition-colors group"
+            >
+              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 transition-colors" />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {recentGrades.length > 0 ? (
+              recentGrades.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between p-5 bg-emerald-50/30 rounded-2xl border border-transparent hover:border-emerald-100 hover:bg-white transition-all group cursor-pointer">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center font-black text-emerald-600 shadow-sm">
+                      {item.mapel?.substring(0, 2).toUpperCase() || "N"}
+                    </div>
+                    <div>
+                      <p className="font-bold text-[#111827]">{item.mapel || item.subject_name}</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{item.jenis || "Tugas"}</p>
+                    </div>
+                  </div>
+                  <div className={`text-xl font-black ${Number(item.nilai) >= 75 ? "text-emerald-600" : "text-red-500"}`}>
+                    {item.nilai}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-10">
+                <p className="text-slate-400 font-medium italic">Belum ada data nilai terbaru.</p>
+              </div>
+            )}
+          </div>
+        </FadeInUp>
       </div>
     </div>
   );
 }
-

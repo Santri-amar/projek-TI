@@ -1,95 +1,44 @@
 import { apiClient } from "./apiClient";
 
-const loginEndpointByRole = {
-  superadmin: "login/superadmin",
-  admin: "login/admin",
-  guru: "guru", // diubah agar sesuai backend
-  siswa: "login/siswa",
-};
-
-function normalizeLoginResponse(payload) {
-  if (!payload || typeof payload !== "object") {
-    throw new Error("Format respons login tidak valid.");
-  }
-
-  const raw = payload;
-  const msg = raw.msg || raw.message || "Login berhasil";
-
-  const data = raw.data;
-  const token = data?.token;
-  const user = data?.user;
-
-  if (!token || !user) {
-    throw new Error("Token atau data user tidak ditemukan di respons login.");
-  }
-
-  return {
-    msg,
-    data: {
-      token,
-      user,
-    },
+// Fungsi login utama yang fleksibel
+async function performLogin(role, identifier, password) {
+  const loginEndpoints = {
+    admin: "/api/login/admin",
+    guru: "/api/login/guru",
+    siswa: "/api/login/siswa",
+    superadmin: "/api/login/superadmin"
   };
-}
 
-export async function loginByRole(role, payload) {
-  const endpoint = loginEndpointByRole[role];
-  const rawIdentifier = payload.identifier.trim();
-  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawIdentifier);
-  const base = { password: payload.password };
+  const endpoint = loginEndpoints[role] || "/api/login/admin";
 
-  const candidatePayloads = isEmail
-    ? [
-        { ...base, email: rawIdentifier },
-        { ...base, username: rawIdentifier },
-        { ...base, name: rawIdentifier },
-      ]
-    : [
-        { ...base, username: rawIdentifier },
-        { ...base, name: rawIdentifier },
-        { ...base, email: rawIdentifier },
-      ];
+  try {
+    const response = await apiClient.post(endpoint, {
+      email: identifier, // Identifier bisa berisi email atau username
+      password: password
+    });
 
-  let lastError = null;
-
-  for (const requestPayload of candidatePayloads) {
-    try {
-      const response = await apiClient.post(endpoint, requestPayload);
-      return normalizeLoginResponse(response.data);
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error("Login gagal.");
+    if (response.data.token) {
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
     }
+
+    return response; // Mengembalikan objek utuh (Axios response)
+  } catch (error) {
+    console.error(`Login ${role} failed:`, error.response?.data || error.message);
+    throw error;
   }
-
-  throw lastError ?? new Error("Login gagal.");
 }
 
-export async function loginAdmin(payload) {
-  const endpoint = loginEndpointByRole["admin"];
-  const rawIdentifier = payload.identifier.trim();
-  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawIdentifier);
+export const loginAdmin = (creds) => performLogin("admin", creds.identifier, creds.password);
+export const loginGuru = (creds) => performLogin("guru", creds.identifier, creds.password);
+export const loginSiswa = (creds) => performLogin("siswa", creds.identifier, creds.password);
 
-  if (!isEmail) {
-    throw new Error("Admin hanya dapat login menggunakan email.");
-  }
-
-  const requestPayload = {
-    email: rawIdentifier,
-    password: payload.password,
-  };
-
-  const response = await apiClient.post(endpoint, requestPayload);
-  return normalizeLoginResponse(response.data);
+export function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
 }
 
-export async function loginGuru(payload) {
-  return loginByRole("guru", payload);
-}
-
-export async function loginSiswa(payload) {
-  return loginByRole("siswa", payload);
-}
-
-export async function loginSuperadmin(payload) {
-  return loginByRole("superadmin", payload);
+export function getCurrentUser() {
+  const user = localStorage.getItem("user");
+  return user ? JSON.parse(user) : null;
 }
