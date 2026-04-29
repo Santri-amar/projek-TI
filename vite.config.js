@@ -22,10 +22,10 @@ export default defineConfig({
 
   server: {
     proxy: {
-      '/api-login': {
+      '/api': {
         target: 'https://school.petik.or.id',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api-login/, '/login'),
+        secure: false,
       },
     },
   },

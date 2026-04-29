@@ -3,6 +3,8 @@ import { useNavigate } from "react-router";
 import { Sidebar } from "./Sidebar";
 import { TopNavbar } from "./TopNavbar";
 import { AdminDashboard } from "./AdminDashboard";
+import { TeacherDashboard } from "./TeacherDashboard";
+import { StudentDashboard } from "./StudentDashboard";
 import { DashboardContent } from "./DashboardContent";
 import { useAuth } from "../../../context/AuthContext";
 
@@ -19,9 +21,9 @@ export function Dashboard() {
     }
   }, [isLoggedIn, navigate]);
 
-  const userRole =
-    user?.role === "guru" || user?.role === "siswa" ? user.role : "admin";
-  const userName = user?.name || "Ahmad";
+  const rawRole = user?.role?.toLowerCase() || "";
+  const userRole = (rawRole === "guru" || rawRole === "siswa") ? rawRole : "admin";
+  const userName = user?.username || user?.name || "User";
 
   const handleMenuClick = (menuId) => {
     setActiveMenu(menuId);
@@ -36,10 +38,12 @@ export function Dashboard() {
       attendance: "Absensi",
       grades: "Nilai",
       announcements: "Pengumuman",
-      reports: "Laporan",
-      settings: "Pengaturan",
-      "my-classes": "Kelas Saya",
+      reports: "Laporan & Analytics",
       profile: "Profil",
+      settings: "Pengaturan",
+      "add-student": "Tambah Siswa",
+      "add-teacher": "Tambah Guru",
+      "add-exam-grade": "Input Nilai Ujian",
     };
     setPageTitle(titles[menuId] || "Dashboard");
   };
@@ -55,8 +59,25 @@ export function Dashboard() {
     return null;
   }
 
+  // Render dashboard berdasarkan role
+  const renderDashboard = () => {
+    if (userRole === "admin") {
+      return (
+        <AdminDashboard
+          userName={userName}
+          searchQuery={searchQuery}
+          onQuickAction={handleMenuClick}
+        />
+      );
+    }
+    if (userRole === "guru") {
+      return <TeacherDashboard userName={userName} />;
+    }
+    return <StudentDashboard userName={userName} />;
+  };
+
   return (
-    <div className="min-h-screen bg-[#F3F4F6]">
+    <div className="min-h-screen bg-white">
       <Sidebar
         role={userRole}
         activeMenu={activeMenu}
@@ -64,19 +85,18 @@ export function Dashboard() {
         onLogout={handleLogout}
       />
 
-      <div className="ml-0 lg:ml-[260px] transition-all">
+      <div className="dashboard-content-wrapper">
         <TopNavbar
           pageTitle={pageTitle}
           userName={userName}
           userRole={userRole}
           searchQuery={searchQuery}
-          showSchoolSwitcher={userRole === "admin"}
           onSearchQueryChange={setSearchQuery}
           onMenuClick={handleMenuClick}
           onLogout={handleLogout}
         />
 
-        <div className="pt-[70px] min-h-screen bg-[#F3F4F6] relative">
+        <div className="min-h-screen bg-white relative">
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -88,12 +108,8 @@ export function Dashboard() {
           />
 
           <div className="relative z-10">
-            {userRole === "admin" && activeMenu === "dashboard" ? (
-              <AdminDashboard
-                userName={userName}
-                searchQuery={searchQuery}
-                onQuickAction={handleMenuClick}
-              />
+            {activeMenu === "dashboard" ? (
+              renderDashboard()
             ) : (
               <DashboardContent
                 role={userRole}

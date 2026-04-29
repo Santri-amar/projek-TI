@@ -1,48 +1,34 @@
 import axios from "axios";
 
-const baseURL =
-  import.meta.env.VITE_API_BASE_URL?.trim() || "https://school.petik.or.id";
-
 export const apiClient = axios.create({
-  baseURL,
-  timeout: 25000,
+  baseURL: "https://school.petik.or.id", // Base URL sesuai instruksi
   headers: {
     "Content-Type": "application/json",
+    Accept: "application/json",
   },
 });
 
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  const isLoginRequest = config.url?.includes("/login/");
+// Interceptor untuk menambahkan token dari localStorage
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-  if (token && !isLoginRequest) {
-    config.headers = config.headers ?? {};
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
-
+// Interceptor untuk menangani error global
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (!error?.response) {
-      const networkMessage =
-        error?.message === "Network Error"
-          ? "Gagal terhubung ke server. Periksa koneksi internet Anda atau coba lagi nanti."
-          : error?.message || "Tidak dapat terhubung ke server.";
-      return Promise.reject(new Error(networkMessage));
+    if (error.response?.status === 401) {
+      console.warn("Unauthorized! Redirecting to login...");
+      // localStorage.removeItem("token");
+      // window.location.href = "/login";
     }
-
-    const message =
-      error?.response?.data?.msg ||
-      error?.response?.data?.message ||
-      error?.message ||
-      "Terjadi kesalahan pada server.";
-
-    return Promise.reject(new Error(message));
-  },
+    return Promise.reject(error);
+  }
 );
-
-export const API_BASE_URL = baseURL;
-

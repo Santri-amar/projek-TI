@@ -1,196 +1,113 @@
-import { Bell, Search, ChevronDown, Building2 } from "lucide-react";
-import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useState, useEffect } from "react";
+import { 
+  Search, 
+  Bell, 
+  ChevronDown, 
+  Building2, 
+  HelpCircle,
+  Settings,
+  LogOut,
+  User as UserIcon,
+  Clock
+} from "lucide-react";
 
 export function TopNavbar({
   pageTitle,
   userName,
   userRole,
   searchQuery,
-  showSchoolSwitcher = false,
   onSearchQueryChange,
-  onMenuClick,
   onLogout,
+  onMenuClick,
 }) {
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [showSchoolDropdown, setShowSchoolDropdown] = useState(false);
-  const [showMobileSearch, setShowMobileSearch] = useState(false);
-  const [selectedSchool, setSelectedSchool] = useState("SMA Negeri 1");
+  const [time, setTime] = useState(new Date());
 
-  const schools = [
-    "SMA Negeri 1",
-    "SMA Negeri 2",
-    "SMA Negeri 3",
-    "SMK Negeri 1",
-  ];
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const userInitial = userName?.charAt(0).toUpperCase() || "U";
 
   return (
-    <div className="h-[70px] bg-white border-b border-[#E3EAF5] fixed top-0 right-0 left-0 lg:left-[260px] z-30 flex items-center justify-between px-4 md:px-8">
-      {/* Page Title */}
-      <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
-        <h1 className="text-lg md:text-2xl font-bold text-[#111827] truncate">
-          {pageTitle}
-        </h1>
-
-        {/* School Switcher - For Multi-School Admin */}
-        {showSchoolSwitcher && (
-          <div className="hidden md:block relative">
-            <button
-              onClick={() => setShowSchoolDropdown(!showSchoolDropdown)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#EEF4FF] rounded-lg hover:bg-[#E7F0FF] transition"
-            >
-              <Building2 className="w-4 h-4 text-[#6B7280]" />
-              <span className="text-sm font-semibold text-[#1F2937]">
-                {selectedSchool}
-              </span>
-              <ChevronDown
-                className={`w-4 h-4 text-gray-500 transition ${showSchoolDropdown ? "rotate-180" : ""}`}
-              />
-            </button>
-
-            <AnimatePresence>
-              {showSchoolDropdown && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute left-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-[#E3EAF5] overflow-hidden"
-                >
-                  <div className="p-2">
-                    {schools.map((school) => (
-                      <button
-                        key={school}
-                        onClick={() => {
-                          setSelectedSchool(school);
-                          setShowSchoolDropdown(false);
-                        }}
-                        className={`w-full px-4 py-2 text-left text-sm rounded-lg transition ${
-                          selectedSchool === school
-                            ? "bg-gradient-to-r from-[#4DA3FF] to-[#8A52E8] text-white font-semibold"
-                            : "hover:bg-[#EEF4FF]"
-                        }`}
-                      >
-                        {school}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
+    <header className="h-20 px-8 flex items-center justify-between sticky top-0 bg-white border-b border-slate-100 z-40 transition-all">
+      
+      {/* LEFT SECTION */}
+      <div className="flex items-center gap-6">
+        <h2 className="text-xl font-bold text-slate-900">{pageTitle}</h2>
+        
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-full">
+          <Building2 className="w-4 h-4 text-blue-600" />
+          <span className="text-[12px] font-bold text-blue-700">SMA Negeri 1</span>
+          <ChevronDown className="w-3.5 h-3.5 text-blue-400" />
+        </div>
       </div>
 
-      {/* Right Section */}
-      <div className="flex items-center gap-2 md:gap-4">
-        {showMobileSearch && (
-          <div className="md:hidden absolute left-3 right-3 top-[76px] bg-white border border-[#E3EAF5] rounded-xl p-2 shadow-lg">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => onSearchQueryChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-[#EEF4FF] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4DA3FF]/30"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Search Bar - Hidden on mobile */}
-        <div className="hidden md:block relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+      {/* CENTER SECTION */}
+      <div className="hidden md:flex flex-1 max-w-md mx-8">
+        <div className="relative w-full group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
           <input
             type="text"
             placeholder="Search..."
+            className="w-full pl-11 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-full text-[13px] font-medium text-slate-600 focus:bg-white focus:border-indigo-200 outline-none transition-all"
             value={searchQuery}
             onChange={(e) => onSearchQueryChange(e.target.value)}
-            className="w-48 lg:w-64 pl-10 pr-4 py-2 bg-[#EEF4FF] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4DA3FF]/30"
           />
         </div>
+      </div>
 
-        {/* Search Button - Mobile only */}
-        <button
-          onClick={() => setShowMobileSearch((prev) => !prev)}
-          className="md:hidden p-2 hover:bg-[#EEF4FF] rounded-lg transition"
-        >
-          <Search className="w-5 h-5 text-gray-700" />
-        </button>
+      {/* RIGHT SECTION */}
+      <div className="flex items-center gap-5">
+        
+        {/* Subtle Real-time Clock */}
+        <div className="hidden xl:flex flex-col items-end text-slate-400 border-r border-slate-100 pr-5">
+           <span className="text-[13px] font-bold text-slate-700 tabular-nums leading-none">
+             {time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+           </span>
+           <span className="text-[10px] font-medium uppercase tracking-tighter mt-1">
+             {time.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}
+           </span>
+        </div>
 
-        {/* Notification */}
-        <button className="relative p-2 hover:bg-[#EEF4FF] rounded-lg transition">
-          <Bell className="w-5 h-5 text-gray-700" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => onMenuClick("announcements")} className="p-2 hover:bg-slate-50 rounded-full relative transition-all group">
+            <Bell className="w-5 h-5 text-slate-500 group-hover:text-indigo-600" />
+            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 border-2 border-white rounded-full"></span>
+          </button>
+        </div>
 
-        {/* User Profile Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setShowDropdown(!showDropdown)}
-            className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 hover:bg-[#EEF4FF] rounded-lg transition"
-          >
-            <div className="w-8 h-8 md:w-9 md:h-9 bg-gradient-to-r from-[#4DA3FF] to-[#8A52E8] rounded-full flex items-center justify-center text-white font-bold text-sm">
-              {userName.charAt(0).toUpperCase()}
+        {/* User Identity */}
+        <div className="relative group">
+          <button className="flex items-center gap-3 p-1 hover:bg-slate-50 rounded-full transition-all">
+            <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white text-[13px] font-bold shadow-md shadow-indigo-100">
+               {userInitial}
             </div>
-            <div className="text-left hidden md:block">
-              <p className="text-sm font-semibold text-[#111827]">{userName}</p>
-              <p className="text-xs text-[#6B7280] capitalize">{userRole}</p>
+            <div className="text-left hidden lg:block">
+               <p className="text-[13px] font-bold text-slate-800 leading-none">{userName}</p>
+               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mt-0.5">
+                 {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
+               </p>
             </div>
-            <ChevronDown
-              className={`w-4 h-4 text-gray-500 transition hidden md:block ${showDropdown ? "rotate-180" : ""}`}
-            />
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:rotate-180 transition-transform" />
           </button>
 
-          <AnimatePresence>
-            {showDropdown && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-[#E3EAF5] overflow-hidden"
-              >
-                <div className="p-2 md:hidden border-b border-[#E3EAF5]">
-                  <p className="px-2 py-1 text-sm font-semibold text-[#111827]">
-                    {userName}
-                  </p>
-                  <p className="px-2 text-xs text-[#6B7280] capitalize">
-                    {userRole}
-                  </p>
-                </div>
-                <button
-                  onClick={() => {
-                    onMenuClick("profile");
-                    setShowDropdown(false);
-                  }}
-                  className="w-full px-4 py-3 text-left text-sm hover:bg-[#EEF4FF] transition"
-                >
-                  Profil
-                </button>
-                <button
-                  onClick={() => {
-                    onMenuClick("settings");
-                    setShowDropdown(false);
-                  }}
-                  className="w-full px-4 py-3 text-left text-sm hover:bg-[#EEF4FF] transition"
-                >
-                  Pengaturan
-                </button>
-                <div className="border-t border-[#E3EAF5]"></div>
-                <button
-                  onClick={() => {
-                    setShowDropdown(false);
-                    onLogout();
-                  }}
-                  className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 transition"
-                >
-                  Logout
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Dropdown Menu */}
+          <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all py-2 z-50">
+             <button onClick={() => onMenuClick("profile")} className="w-full flex items-center gap-3 px-4 py-2 text-[13px] font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+                <UserIcon className="w-4 h-4 text-slate-400" /> Profil
+             </button>
+             <button onClick={() => onMenuClick("settings")} className="w-full flex items-center gap-3 px-4 py-2 text-[13px] font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+                <Settings className="w-4 h-4 text-slate-400" /> Settings
+             </button>
+             <div className="h-px bg-slate-50 my-1.5 mx-2" />
+             <button onClick={onLogout} className="w-full flex items-center gap-3 px-4 py-2 text-[13px] font-bold text-red-500 hover:bg-red-50 transition-colors">
+                <LogOut className="w-4 h-4" /> Logout
+             </button>
+          </div>
         </div>
+
       </div>
-    </div>
+    </header>
   );
 }

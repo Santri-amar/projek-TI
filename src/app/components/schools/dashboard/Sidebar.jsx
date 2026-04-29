@@ -1,7 +1,6 @@
 import { motion } from "motion/react";
 import { useState } from "react";
 import {
-  Home,
   Users,
   GraduationCap,
   BookOpen,
@@ -9,147 +8,144 @@ import {
   ClipboardCheck,
   BarChart3,
   Megaphone,
-  FileText,
-  Settings,
   User,
   LogOut,
   Menu,
   X,
+  LayoutDashboard,
+  Settings,
+  School,
+  FileText,
+  PieChart
 } from "lucide-react";
+import "./Dashboard.css";
 
 const menuItems = {
   admin: [
-    { id: "dashboard", label: "Dashboard", icon: Home },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "students", label: "Data Siswa", icon: Users },
     { id: "teachers", label: "Data Guru", icon: GraduationCap },
-    { id: "classes", label: "Kelas", icon: BookOpen },
-    { id: "subjects", label: "Mata Pelajaran", icon: FileText },
+    { id: "classes", label: "Kelas", icon: School },
+    { id: "subjects", label: "Mata Pelajaran", icon: BookOpen },
     { id: "schedule", label: "Jadwal", icon: Calendar },
     { id: "attendance", label: "Absensi", icon: ClipboardCheck },
     { id: "grades", label: "Nilai", icon: BarChart3 },
     { id: "announcements", label: "Pengumuman", icon: Megaphone },
+    { id: "reports", label: "Laporan & Analytics", icon: PieChart },
     { id: "profile", label: "Profil", icon: User },
     { id: "settings", label: "Pengaturan", icon: Settings },
   ],
   guru: [
-    { id: "dashboard", label: "Dashboard", icon: Home },
-    { id: "my-classes", label: "Kelas Saya", icon: BookOpen },
-    { id: "schedule", label: "Jadwal", icon: Calendar },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "students", label: "Data Siswa", icon: Users },
     { id: "attendance", label: "Absensi", icon: ClipboardCheck },
+    { id: "schedule", label: "Jadwal", icon: Calendar },
     { id: "grades", label: "Nilai", icon: BarChart3 },
     { id: "announcements", label: "Pengumuman", icon: Megaphone },
     { id: "profile", label: "Profil", icon: User },
   ],
   siswa: [
-    { id: "dashboard", label: "Dashboard", icon: Home },
-    { id: "schedule", label: "Jadwal Saya", icon: Calendar },
-    { id: "grades", label: "Nilai Saya", icon: BarChart3 },
-    { id: "attendance", label: "Absensi Saya", icon: ClipboardCheck },
-    { id: "announcements", label: "Pengumuman", icon: Megaphone },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "profile", label: "Profil", icon: User },
+    { id: "schedule", label: "Jadwal", icon: Calendar },
+    { id: "grades", label: "Nilai", icon: BarChart3 },
+    { id: "attendance", label: "Absensi", icon: ClipboardCheck },
+    { id: "announcements", label: "Pengumuman", icon: Megaphone },
   ],
 };
 
 export function Sidebar({ role, activeMenu, onMenuClick, onLogout }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const menus = menuItems[role];
+  const menus = menuItems[role] || menuItems.admin;
 
   const SidebarContent = () => (
-    <>
-      {/* Logo & School Info */}
-      <div className="p-6 border-b border-[#E3EAF5]">
-        <div className="flex items-center gap-3 mb-2">
-          <img
-            src="/logo-owl.png"
-            alt="Schools Logo"
-            className="w-10 h-10 object-contain"
-          />
+    <div className="h-full flex flex-col bg-white sidebar-container">
+      {/* Logo Section */}
+      <div className="sidebar-logo-section">
+        <div className="flex items-center gap-3">
+          <img src="/logo-owl.png" alt="Schools Logo" className="w-10 h-10 object-contain" />
           <div>
-            <h1 className="font-black text-lg text-[#111827]">SCHOOLS</h1>
-            <p className="text-xs text-[#6B7280]">SMA Negeri 1</p>
+            <h1 className="font-extrabold text-xl tracking-tight text-[#4338ca]">SCHOOLS</h1>
+            <p className="sidebar-school-badge">
+              {role === "guru" ? "Panel Guru" : role === "siswa" ? "Panel Siswa" : "Admin Panel"}
+            </p>
           </div>
         </div>
-        <span className="inline-block px-2 py-1 text-xs font-semibold bg-gradient-to-r from-[#4DA3FF] to-[#8A52E8] text-white rounded">
-          {role === "admin"
-            ? "Admin Panel"
-            : role === "guru"
-              ? "Teacher Panel"
-              : "Student Panel"}
-        </span>
       </div>
 
-      {/* Menu Items */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3">
+      {/* Navigation - Flat List as requested */}
+      <nav className="flex-1 py-6 space-y-0.5 overflow-y-auto overflow-x-hidden">
         {menus.map((menu) => {
           const Icon = menu.icon;
           const isActive = activeMenu === menu.id;
 
           return (
-            <motion.button
+            <button
               key={menu.id}
               onClick={() => {
                 onMenuClick(menu.id);
                 setMobileOpen(false);
               }}
-              whileHover={{ scale: isActive ? 1 : 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className={`w-full flex items-center gap-3 px-4 py-3 mb-1 rounded-xl transition ${
-                isActive
-                  ? "bg-gradient-to-r from-[#4DA3FF] to-[#8A52E8] text-white shadow-md"
-                  : "text-[#374151] hover:bg-[#EEF4FF]"
+              className={`w-full flex items-center gap-3 px-4 py-3 sidebar-menu-item ${
+                isActive ? "active" : ""
               }`}
             >
-              <Icon className="w-5 h-5" />
-              <span className="font-medium text-sm">{menu.label}</span>
-            </motion.button>
+              <Icon 
+                strokeWidth={2.5} 
+                className={`w-[18px] h-[18px] ${isActive ? "text-white" : "text-slate-500"}`} 
+              />
+              <span className={`font-bold text-[13px] ${isActive ? "text-white" : "text-slate-700"}`}>
+                {menu.label}
+              </span>
+            </button>
           );
         })}
       </nav>
 
-      {/* Logout */}
-      <div className="p-3 border-t border-[#E3EAF5]">
+      {/* Footer / Logout */}
+      <div className="p-4 border-t border-slate-50">
         <button
           onClick={onLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl transition"
+          className="w-full flex items-center gap-3 px-4 py-3 logout-btn group"
         >
-          <LogOut className="w-5 h-5" />
-          <span className="font-medium text-sm">Logout</span>
+          <LogOut strokeWidth={2.5} className="w-5 h-5 text-red-500 group-hover:scale-110 transition-transform" />
+          <span className="text-[14px] font-bold">Logout</span>
         </button>
       </div>
-    </>
+    </div>
   );
 
   return (
     <>
-      {/* Mobile Menu Button */}
+      {/* Mobile Toggle */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg border border-[#E3EAF5]"
+        className="lg:hidden fixed top-5 left-5 z-[60] p-2.5 bg-white rounded-xl shadow-xl border border-slate-100"
       >
         {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
       </button>
 
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex w-[260px] h-screen bg-white border-r border-[#E3EAF5] fixed left-0 top-0 flex-col">
+      <aside className="hidden lg:block w-[260px] h-screen fixed left-0 top-0 z-50">
         <SidebarContent />
-      </div>
+      </aside>
 
-      {/* Mobile Sidebar */}
+      {/* Mobile Sidebar Overlay */}
       {mobileOpen && (
         <>
           <div
-            className="lg:hidden fixed inset-0 bg-black/50 z-40"
+            className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[55]"
             onClick={() => setMobileOpen(false)}
           />
-
-          <motion.div
+          <motion.aside
             initial={{ x: -300 }}
             animate={{ x: 0 }}
             exit={{ x: -300 }}
-            className="lg:hidden w-[280px] h-screen bg-white fixed left-0 top-0 z-50 flex flex-col shadow-2xl"
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="lg:hidden w-[300px] h-screen fixed left-0 top-0 z-[60] shadow-2xl"
           >
             <SidebarContent />
-          </motion.div>
+          </motion.aside>
         </>
       )}
     </>

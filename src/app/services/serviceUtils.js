@@ -4,6 +4,11 @@ export function extractList(payload) {
   }
 
   if (payload && typeof payload === "object") {
+    // Handle API format: { success: true, message: "...", data: [...] }
+    if (payload.success === true && Array.isArray(payload.data)) {
+      return payload.data;
+    }
+
     const value = payload;
 
     if (Array.isArray(value.data)) {
@@ -24,6 +29,16 @@ export function extractList(payload) {
   }
 
   return [];
+}
+
+export function extractData(payload) {
+  if (payload && typeof payload === "object") {
+    if (payload.success === true && payload.data !== undefined) {
+      return payload.data;
+    }
+    return payload;
+  }
+  return null;
 }
 
 export function formatNumber(value) {

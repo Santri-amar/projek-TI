@@ -1,99 +1,135 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { Eye, EyeOff, Sparkles, ShieldCheck, ArrowRight } from "lucide-react";
+import { motion } from "motion/react";
 import { Logo } from "./Logo";
 import "./AuthScreens.css";
 import { loginAdmin, loginGuru, loginSiswa } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
 
+function isEmail(v) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v || "").trim());
+}
+
+const item = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0 },
+};
+
 export function LoginScreen() {
   const navigate = useNavigate();
   const { login } = useAuth();
+
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("siswa");
-  const [rememberMe, setRememberMe] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMsg("");
 
     const trimmedIdentifier = identifier.trim();
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedIdentifier);
 
-    if (role === "admin" && !isEmail) {
-      setErrorMsg("Admin hanya dapat login menggunakan email.");
-      return;
-    }
-
-    if (
-      role !== "admin" &&
-      isEmail &&
-      !trimmedIdentifier.endsWith("@school.id")
-    ) {
-      setErrorMsg("Email harus menggunakan domain @school.id");
-      return;
+    if (!trimmedIdentifier)
+      return setErrorMsg("Username atau email tidak boleh kosong.");
+    if (!password) return setErrorMsg("Password wajib diisi.");
+    if (role === "admin" && !isEmail(trimmedIdentifier)) {
+      return setErrorMsg("Admin wajib login menggunakan email valid.");
     }
 
     setIsLoading(true);
-
     try {
-      let result;
+      let response;
+      if (role === "admin")
+        response = await loginAdmin({
+          identifier: trimmedIdentifier,
+          password,
+        });
+      else if (role === "guru")
+        response = await loginGuru({ identifier: trimmedIdentifier, password });
+      else
+        response = await loginSiswa({
+          identifier: trimmedIdentifier,
+          password,
+        });
 
-      // Pilih fungsi login berdasarkan role
-      if (role === "admin") {
-        result = await loginAdmin({ identifier, password });
-      } else if (role === "guru") {
-        result = await loginGuru({ identifier, password });
-      } else {
-        result = await loginSiswa({ identifier, password });
-      }
-
-      login(result.data.token, result.data.user);
+      login(response.data.token, response.data.user);
       navigate("/dashboard");
     } catch (error) {
-      if (error instanceof Error) {
-        setErrorMsg(error.message);
-      } else {
-        setErrorMsg("Terjadi kesalahan, coba lagi");
-      }
+      setErrorMsg(error.message || "Login gagal.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <section className="auth-page auth-login">
-      <div className="auth-bg-ring auth-bg-ring--outline auth-bg-ring--top-small" />
-      <div className="auth-bg-ring auth-bg-ring--filled auth-bg-ring--top-big" />
-      <div className="auth-bg-ring auth-bg-ring--outline auth-bg-ring--right-mid" />
-      <div className="auth-bg-ring auth-bg-ring--outline auth-bg-ring--left-mid" />
-      <div className="auth-bg-ring auth-bg-ring--filled auth-bg-ring--left-bottom" />
+    <motion.section
+      className="auth-page auth-login"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.35 }}
+    >
+      <div className="mesh mesh-1" />
+      <div className="mesh mesh-2" />
+      <div className="mesh mesh-3" />
 
-      <div className="auth-card">
+      <motion.div
+        className="auth-card glass"
+        initial={{ opacity: 0, y: 18, scale: 0.985 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+      >
         <aside className="auth-left">
+          <div className="glow-orb" />
           <div className="auth-logo-wrap">
             <Logo />
           </div>
+
           <div className="auth-left-text">
-            <p>Dont have an account?</p>
-            <button
-              type="button"
-              className="auth-left-link"
-              onClick={() => navigate("/register")}
-            >
-              Get started!
-            </button>
+            <h3 className="left-title">Sistem Informasi Akademik</h3>
+            <p className="left-sub">Modern, Terintegrasi, & Profesional</p>
           </div>
+
+          <div className="chip-row">
+            <span className="chip">
+              <ShieldCheck size={14} /> Aman
+            </span>
+            <span className="chip">
+              <Sparkles size={14} /> Interaktif
+            </span>
+          </div>
+
+          <button
+            type="button"
+            className="auth-login-btn-link"
+            onClick={() => navigate("/register")}
+          >
+            Belum punya akun? Register <ArrowRight size={14} />
+          </button>
         </aside>
 
         <div className="auth-right">
           <h1 className="auth-title">Account Login</h1>
-          <form className="auth-form" onSubmit={handleLogin}>
-            <div className="auth-group">
+          <p className="auth-subtitle">
+            Masuk sesuai role untuk mengakses dashboard.
+          </p>
+
+          <motion.form
+            className="auth-form"
+            onSubmit={handleLogin}
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: {},
+              show: { transition: { staggerChildren: 0.06 } },
+            }}
+          >
+            <motion.div className="auth-group" variants={item}>
               <label className="auth-label" htmlFor="login-identifier">
-                {role === "admin" ? "Email" : "Email / Username"}
+                Email or Username
               </label>
               <input
                 id="login-identifier"
@@ -108,15 +144,15 @@ export function LoginScreen() {
                 }
                 required
               />
-            </div>
+            </motion.div>
 
-            <div className="auth-group">
+            <motion.div className="auth-group" variants={item}>
               <label className="auth-label" htmlFor="login-role">
                 Login Sebagai
               </label>
               <select
                 id="login-role"
-                className="auth-input"
+                className="auth-input auth-select"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
               >
@@ -124,43 +160,56 @@ export function LoginScreen() {
                 <option value="guru">Guru</option>
                 <option value="siswa">Siswa</option>
               </select>
-            </div>
+            </motion.div>
 
-            <div className="auth-group">
+            <motion.div className="auth-group" variants={item}>
               <label className="auth-label" htmlFor="login-password">
                 Password
               </label>
-              <input
-                id="login-password"
-                className="auth-input"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-
-            <label className="auth-check" htmlFor="remember-me">
-              <input
-                id="remember-me"
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-              Remember me
-            </label>
+              <div className="auth-password-wrap">
+                <input
+                  id="login-password"
+                  className="auth-input auth-input--password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Masukkan password"
+                  required
+                />
+                <button
+                  type="button"
+                  className="auth-password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </motion.div>
 
             {errorMsg && (
-              <p className="text-red-400 text-sm mb-2">{errorMsg}</p>
+              <motion.p className="auth-error" variants={item}>
+                {errorMsg}
+              </motion.p>
             )}
-            <button className="auth-submit" type="submit" disabled={isLoading}>
-              {isLoading ? "Memuat..." : "Login"}
-            </button>
-          </form>
 
-          <div className="auth-right-corner" />
+            <motion.button
+              className="auth-submit shine"
+              type="submit"
+              disabled={isLoading}
+              whileHover={{ y: -2, scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              variants={item}
+            >
+              {isLoading ? "Memproses..." : "Masuk ke Dashboard"}
+            </motion.button>
+          </motion.form>
         </div>
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   );
 }
