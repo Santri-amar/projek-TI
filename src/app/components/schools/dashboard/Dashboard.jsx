@@ -23,7 +23,7 @@ export function Dashboard() {
 
   const rawRole = user?.role?.toLowerCase() || "";
   const userRole = (rawRole === "guru" || rawRole === "siswa") ? rawRole : "admin";
-  const userName = user?.name || "User";
+  const userName = user?.username || user?.name || "User";
 
   const handleMenuClick = (menuId) => {
     setActiveMenu(menuId);
@@ -38,6 +38,7 @@ export function Dashboard() {
       attendance: "Absensi",
       grades: "Nilai",
       announcements: "Pengumuman",
+      reports: "Laporan & Analytics",
       profile: "Profil",
       settings: "Pengaturan",
       "add-student": "Tambah Siswa",

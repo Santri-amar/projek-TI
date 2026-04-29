@@ -16,6 +16,7 @@ import { AddStudentPage } from "./pages/AddStudentPage";
 import { AddTeacherPage } from "./pages/AddTeacherPage";
 import { UserManagementPage } from "./pages/UserManagementPage";
 import { AddExamGradePage } from "./pages/AddExamGradePage";
+import { ReportsPage } from "./pages/ReportsPage";
 
 // DASHBOARD COMPONENTS
 import { AdminDashboard } from "./AdminDashboard";
@@ -62,6 +63,7 @@ export function DashboardContent({
       grades: <GradesPage searchQuery={searchQuery} userRole={role} />,
       announcements: <AnnouncementsPage searchQuery={searchQuery} userRole={role} />,
       "user-management": <UserManagementPage searchQuery={searchQuery} />,
+      reports: <ReportsPage />,
     };
 
     // ROLE: GURU (CRUD on Nilai & Absensi, View others)

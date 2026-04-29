@@ -20,6 +20,7 @@ export function ProfilePage({ userName, userEmail, userRole, onProfileUpdate }) 
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
 
+  // FIX: Gunakan userName yang sudah benar dari props (yang berasal dari user.username)
   const [form, setForm] = useState({
     name: userName || "",
     email: userEmail || "",
